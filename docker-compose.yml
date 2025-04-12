@@ -11,7 +11,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - stationSki:/var/lib/mysql
 
   springboot-app:
     image: maramnaderi/my-app:latest  # Remplace avec le vrai nom de ton image Docker
@@ -24,7 +24,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL5InnoDBDialect
       SERVER_PORT: 8089
       SERVER_SERVLET_CONTEXT_PATH: /api
     ports:
@@ -33,7 +32,7 @@ services:
       - springboot-network
 
 volumes:
-  mysql_data:
+  stationSki:
 
 networks:
   springboot-network:

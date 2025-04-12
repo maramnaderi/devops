@@ -12,20 +12,14 @@ services:
       - "3306:3306"
     volumes:
       - stationSki:/var/lib/mysql
+    networks:
+      - springboot-network
 
   springboot-app:
-    image: maramnaderi/my-app:latest  # Remplace avec le vrai nom de ton image Docker
+    image: maramnaderi/my-app:latest
     container_name: springboot-container
     depends_on:
       - mysql
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/stationSki?createDatabaseIfNotExist=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SERVER_PORT: 8089
-      SERVER_SERVLET_CONTEXT_PATH: /api
     ports:
       - "8089:8089"
     networks:

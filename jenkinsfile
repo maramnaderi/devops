@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         APP_ENV = "DEV"
-        SONARQUBE = 'SonarQube' // Nom du serveur SonarQube que vous avez configuré dans Jenkins
+        SONARQUBE = 'scanner' // Nom du serveur SonarQube que vous avez configuré dans Jenkins
     }
 
     options {

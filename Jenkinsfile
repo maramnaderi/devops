@@ -38,7 +38,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'docker build -t fadizaghdoud/GestionStationSki:latest .'
+                        sh 'docker build -t fadizaghdoud/gestion-station-ski:latest .'
                     } catch (Exception e) {
                         echo "Erreur lors de la construction de l'image Docker : ${e}"
                         error "Échec dans l'étape de construction de l'image Docker"
@@ -59,7 +59,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh "docker push fadizaghdoud/GestionStationSki:latest"
+                        sh "docker push fadizaghdoud/gestion-station-ski:latest"
                         echo "✅ Image Docker poussée avec succès sur Docker Hub."
                     } catch (Exception e) {
                         echo "Erreur lors du push Docker : ${e}"

@@ -34,18 +34,7 @@ pipeline {
                 }
             }
         }
-                stage('Déploiement sur Nexus') {
-            steps {
-                script {
-                    try {
-                        sh 'mvn deploy'
-                    } catch (Exception e) {
-                        echo "Erreur lors du déploiement sur Nexus : ${e}"
-                        error "Échec dans l'étape de déploiement sur Nexus"
-                    }
-                }
-            }
-        }
+
 
         stage('Tests Unitaires avec Mockito') {
             steps {
@@ -104,7 +93,30 @@ pipeline {
             }
         }
         
-
+                stage('Déploiement sur Nexus') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn deploy'
+                    } catch (Exception e) {
+                        echo "Erreur lors du déploiement sur Nexus : ${e}"
+                        error "Échec dans l'étape de déploiement sur Nexus"
+                    }
+                }
+            }
+        }
+        stage('Construction de l’image Docker') {
+            steps {
+                script {
+                    try {
+                        sh 'docker build -t nadianb/foyer:latest .'
+                    } catch (Exception e) {
+                        echo "Erreur lors de la construction de l'image Docker : ${e}"
+                        error "Échec dans l'étape de construction de l'image Docker"
+                    }
+                }
+            }
+        }
 
     }
 }

@@ -2,28 +2,28 @@ pipeline {
     agent any
 
     tools {
-        maven 'M2_HOME' // Assurez-vous que ce nom correspond bien dans Jenkins > Global Tool Configuration
+        maven 'M2_HOME' // Nom de l'installation Maven dans "Global Tool Configuration"
     }
 
     environment {
         APP_ENV = "DEV"
-        SONARQUBE = 'scanner' // Nom du serveur SonarQube dans Jenkins
-        registryCredentials = 'nexus' // ID des credentials Nexus dans Jenkins
-        registry = '192.168.33.10:8083' // Adresse de Nexus (sans HTTPS si ce n'est pas sécurisé)
-        imageName = 'my-app' // Nom de l’image à builder et à pousser
+        SONARQUBE = 'scanner' // Nom du serveur SonarQube configuré dans Jenkins
+        registryCredentials = 'nexus' // ID des credentials pour Nexus dans Jenkins
+        registry = '192.168.33.10:8083' // Adresse du registre Nexus
+        imageName = 'my-app' // Nom de l’image Docker
     }
 
     options {
-        ansiColor('xterm')
-    timestamps()
-    timeout(time: 10, unit: 'MINUTES') // pour éviter que le build reste bloqué trop longtemps
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm'])
+        timestamps()
+        timeout(time: 10, unit: 'MINUTES')
     }
 
     stages {
 
         stage('Checkout code') {
             steps {
-                git branch: 'khairidinne',
+                git branch: 'Haythem',
                     url: 'https://github.com/maramnaderi/devops.git',
                     credentialsId: 'github-pat'
             }
@@ -39,11 +39,11 @@ pipeline {
             steps {
                 script {
                     withSonarQubeEnv(SONARQUBE) {
-                        sh '''
+                        sh """
                             mvn sonar:sonar \
                             -Dsonar.projectKey=mon-projet \
                             -Dsonar.host.url=http://172.26.59.33:9000
-                        '''
+                        """
                     }
                 }
             }
@@ -77,10 +77,10 @@ pipeline {
 
     post {
         failure {
-        echo "💥 Build échoué, vérifie le stage précédent pour plus d'infos."
-    }
-    aborted {
-        echo "🛑 Build annulé ou timeout dépassé."
-    }
+            echo "💥 Build échoué, vérifie le stage précédent pour plus d'infos."
+        }
+        aborted {
+            echo "🛑 Build annulé ou timeout dépassé."
+        }
     }
 }

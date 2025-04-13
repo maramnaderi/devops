@@ -1,1 +1,56 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'M2_HOME' // Assurez-vous que Maven est bien configuré dans Jenkins
+    }
+
+    environment {
+        APP_ENV = "DEV"
+        SONARQUBE = 'scanner' // Nom du serveur SonarQube que vous avez configuré dans Jenkins
+    }
+
+    options {
+        timeout(time: 1, unit: 'MINUTES')
+    }
+
+    stages {
+        stage('Checkout code') {
+            steps {
+                git branch: 'khairidinne',
+                    url: 'https://github.com/maramnaderi/devops.git',
+                    credentialsId: 'github-pat'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn install -Dmaven.test.skip=true'
+            }
+        }
+
+        stage('SonarQube analysis') {
+            steps {
+                script {
+                    // Exécution de l'analyse SonarQube
+                    withSonarQubeEnv(SONARQUBE) {
+                        sh 'mvn sonar:sonar -Dsonar.projectKey=mon-projet -Dsonar.host.url=http://172.26.59.33:9000'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "======always======"
+        }
+        success {
+            echo "=====pipeline executed successfully====="
+        }
+        failure {
+            echo "======pipeline execution failed======"
+        }
+    }
+}
 

@@ -28,8 +28,8 @@ pipeline {
                     try {
                         sh 'mvn clean compile'
                     } catch (Exception e) {
-                        echo "❌ Erreur Compilation Maven : ${e}"
-                        error "Échec de la compilation Maven"
+                        echo "Erreur lors de l'exécution de Maven : ${e}"
+                        error "Échec dans l'étape de compilation Maven"
                     }
                 }
             }
@@ -41,8 +41,8 @@ pipeline {
                     try {
                         sh 'mvn test'
                     } catch (Exception e) {
-                        echo "❌ Erreur Tests Unitaires : ${e}"
-                        error "Échec des tests unitaires"
+                        echo "Erreur lors des tests unitaires : ${e}"
+                        error "Échec dans l'étape des tests unitaires"
                     }
                 }
             }
@@ -54,14 +54,30 @@ pipeline {
                     try {
                         sh 'mvn jacoco:report'
                     } catch (Exception e) {
-                        echo "❌ Erreur Rapport JaCoCo : ${e}"
-                        error "Échec génération rapport JaCoCo"
+                        echo "Erreur lors de la génération du rapport JaCoCo : ${e}"
+                        error "Échec dans la génération du rapport JaCoCo"
                     }
                 }
             }
         }
 
-       
+        stage('Analyse SonarQube') {
+            steps {
+                script {
+                    try {
+                        sh '''
+                            mvn sonar:sonar \
+                            -Dsonar.projectKey=devops \
+                            -Dsonar.host.url=http://172.23.202.74:9000 \
+                            -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    } catch (Exception e) {
+                        echo "Erreur lors de l'analyse SonarQube : ${e}"
+                        error "Échec dans l'étape d'analyse SonarQube"
+                    }
+                }
+            }
+        }
 
         stage('Packaging Maven (sans tests)') {
             steps {
@@ -69,45 +85,11 @@ pipeline {
                     try {
                         sh 'mvn clean package -DskipTests'
                     } catch (Exception e) {
-                        echo "❌ Erreur Packaging Maven : ${e}"
-                        error "Échec packaging Maven"
+                        echo "Erreur lors du packaging : ${e}"
+                        error "Échec dans l'étape de packaging"
                     }
                 }
             }
         }
-
-         stage('Push Docker Image') {
-            steps {
-                script {
-                    try {
-                        sh "docker push nadianb/foyer:latest"
-                        echo "✅ Image Docker poussée avec succès sur Docker Hub."
-                    } catch (Exception e) {
-                        echo "❌ Erreur Push Docker : ${e}"
-                        error "Échec push Docker"
-                    }
-                }
-            }
-        }
-
-       
-    }
-
-    post {
-        always {
-            emailext(
-                from: 'haythem.raggad@esprit.tn',
-                to: 'haythemraggad1920@gmail.com',
-                subject: "Pipeline ${currentBuild.fullDisplayName} - Statut: ${currentBuild.currentResult}",
-                body: """
-                📊 Statut du build : ${currentBuild.currentResult}
-                🔎 Projet SonarQube : projet-devops
-                🔗 Logs Jenkins : ${env.BUILD_URL}
-                """,
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-                attachLog: true
-            )
-        }
-        // ❌ Blocs de succès et d'échec supprimés
     }
 }

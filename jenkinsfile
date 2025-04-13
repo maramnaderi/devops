@@ -97,7 +97,7 @@ pipeline {
         script {
             try {
                 // Exécution de la commande Maven avec logs détaillés
-                sh 'mvn deploy 
+                sh 'mvn deploy' 
             } catch (Exception e) {
                 // Affichage du message d'erreur avec les détails spécifiques
                 echo "❌ Erreur Déploiement Nexus : ${e.getMessage()}"

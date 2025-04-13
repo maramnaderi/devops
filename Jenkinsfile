@@ -27,9 +27,10 @@ pipeline {
                         def h2Exists = sh(script: 'grep -q "h2database" pom.xml || grep -q "com.h2database" pom.xml', returnStatus: true) == 0
                         
                         if (!h2Exists) {
-                            // Ajouter la dépendance H2 au pom.xml si elle n'existe pas
+                            // Ajouter la dépendance H2 au pom.xml si elle n'existe pas - correction du formatage XML
                             sh '''
-                                sed -i '/<dependencies>/a \\t<dependency>\\n\\t\\t<groupId>com.h2database</groupId>\\n\\t\\t<artifactId>h2</artifactId>\\n\\t\\t<scope>test</scope>\\n\\t</dependency>' pom.xml
+                                awk '/<dependencies>/ { print; print "\\t<dependency>\\n\\t\\t<groupId>com.h2database</groupId>\\n\\t\\t<artifactId>h2</artifactId>\\n\\t\\t<scope>test</scope>\\n\\t</dependency>"; next }1' pom.xml > pom.xml.new
+                                mv pom.xml.new pom.xml
                             '''
                             echo "Dépendance H2 ajoutée au pom.xml"
                         } else {

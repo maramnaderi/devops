@@ -1,87 +1,200 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'M2_HOME' // Assurez-vous que ce nom correspond bien dans Jenkins > Global Tool Configuration
-    }
-
     environment {
-        APP_ENV = "DEV"
-        SONARQUBE = 'scanner' // Nom du serveur SonarQube dans Jenkins
-        registryCredentials = 'nexus' // ID des credentials Nexus dans Jenkins
-        registry = '172.26.59.33:8083' // Adresse de Nexus (sans HTTPS si ce n'est pas sécurisé)
-        imageName = 'my-app' // Nom de l’image à builder et à pousser
-    }
-
-    options {
-        timeout(time: 1, unit: 'MINUTES')
+        SONAR_TOKEN = credentials('scanner') // Token SonarQube
     }
 
     stages {
 
-        stage('Checkout code') {
-            steps {
-                git branch: 'khairidinne',
-                    url: 'https://github.com/maramnaderi/devops.git',
-                    credentialsId: 'github-pat'
-            }
-        }
-
-        stage('Build Maven project') {
-            steps {
-                sh 'mvn clean install -DskipTests'
-            }
-        }
-
-        stage('SonarQube analysis') {
+        stage('Récupération du code') {
             steps {
                 script {
-                    withSonarQubeEnv(SONARQUBE) {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/khairidinne']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/maramnaderi/devops.git',
+                            credentialsId: 'github-pat'
+                        ]]
+                    ])
+                }
+            }
+        }
+
+        stage('Compilation Maven') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn clean compile'
+                    } catch (Exception e) {
+                        echo "Erreur lors de l'exécution de Maven : ${e}"
+                        error "Échec dans l'étape de compilation Maven"
+                    }
+                }
+            }
+        }
+
+        stage('Tests Unitaires avec Mockito') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn test'
+                    } catch (Exception e) {
+                        echo "Erreur lors des tests unitaires : ${e}"
+                        error "Échec dans l'étape des tests unitaires"
+                    }
+                }
+            }
+        }
+
+        stage('Génération du rapport JaCoCo') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn jacoco:report'
+                    } catch (Exception e) {
+                        echo "Erreur lors de la génération du rapport JaCoCo : ${e}"
+                        error "Échec dans la génération du rapport JaCoCo"
+                    }
+                }
+            }
+        }
+
+        stage('Analyse SonarQube') {
+            steps {
+                script {
+                    try {
                         sh '''
                             mvn sonar:sonar \
-                            -Dsonar.projectKey=mon-projet \
-                            -Dsonar.host.url=http://172.26.59.33:9000
+                            -Dsonar.projectKey=projet-devops \
+                            -Dsonar.host.url=http://172.26.59.33:9000 \
+                            -Dsonar.login=$SONAR_TOKEN
                         '''
+                    } catch (Exception e) {
+                        echo "Erreur lors de l'analyse SonarQube : ${e}"
+                        error "Échec dans l'étape d'analyse SonarQube"
                     }
                 }
             }
         }
 
-        stage('Build Docker image') {
-            steps {
-                sh "docker-compose build"
-            }
-        }
-
-        stage('Tag & Push Docker image to Nexus') {
+        stage('Packaging Maven (sans tests)') {
             steps {
                 script {
-                    docker.withRegistry("http://${registry}", registryCredentials) {
-                        sh """
-                            docker tag ${imageName}:latest ${registry}/${imageName}:latest
-                            docker push ${registry}/${imageName}:latest
-                        """
+                    try {
+                        sh 'mvn clean package -DskipTests'
+                    } catch (Exception e) {
+                        echo "Erreur lors du packaging : ${e}"
+                        error "Échec dans l'étape de packaging"
                     }
                 }
             }
         }
 
-        stage('Run application with Docker Compose') {
+        stage('Déploiement sur Nexus') {
             steps {
-                sh 'docker-compose up -d'
+                script {
+                    try {
+                        sh 'mvn deploy'
+                    } catch (Exception e) {
+                        echo "Erreur lors du déploiement sur Nexus : ${e}"
+                        error "Échec dans l'étape de déploiement sur Nexus"
+                    }
+                }
+            }
+        }
+
+        stage('Construction de l’image Docker') {
+            steps {
+                script {
+                    try {
+                        sh 'docker build -t nadianb/foyer:latest .'
+                    } catch (Exception e) {
+                        echo "Erreur lors de la construction de l'image Docker : ${e}"
+                        error "Échec dans l'étape de construction de l'image Docker"
+                    }
+                }
+            }
+        }
+
+        stage('Connexion à DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docke', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    try {
+                        sh "docker push nadianb/foyer:latest"
+                        echo "✅ Image Docker poussée avec succès sur Docker Hub."
+                    } catch (Exception e) {
+                        echo "Erreur lors du push Docker : ${e}"
+                        error "Échec dans l'étape de push Docker"
+                    }
+                }
+            }
+        }
+
+        stage('Déploiement avec Docker Compose') {
+            steps {
+                script {
+                    try {
+                        sh 'docker-compose up -d --build'
+                    } catch (Exception e) {
+                        echo "Erreur lors du déploiement Docker Compose : ${e}"
+                        error "Échec dans le déploiement avec Docker Compose"
+                    }
+                }
             }
         }
     }
 
     post {
         always {
-            echo "====== Pipeline terminé ======"
+            emailext(
+                from: 'hlelikhairi04@gmail.com',
+                to: 'khairidinne.hleli@esprit.tn',
+                subject: "Pipeline ${currentBuild.fullDisplayName} - Statut: ${currentBuild.currentResult}",
+                body: """
+                Statut du build : ${currentBuild.currentResult}
+                Projet analysé par SonarQube : projet-devops
+                Logs disponibles : ${env.BUILD_URL}
+                """,
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+                attachLog: true
+            )
         }
-        success {
-            echo "✅ Pipeline exécuté avec succès"
-        }
+
         failure {
-            echo "❌ Échec de l'exécution du pipeline"
+            emailext(
+                from: 'hlelikhairi04@gmail.com',
+                to: 'khairidinne.hleli@esprit.tn',
+                subject: "❌ Échec du Pipeline ${currentBuild.fullDisplayName}",
+                body: """
+                Le pipeline a échoué à l'étape : ${currentBuild.fullDisplayName}.
+                Logs : ${env.BUILD_URL}
+                """,
+                attachLog: true
+            )
+        }
+
+        success {
+            emailext(
+                from: 'hlelikhairi04@gmail.com',
+                to: 'khairidinne.hleli@esprit.tn',
+                subject: "✅ Succès du Pipeline ${currentBuild.fullDisplayName}",
+                body: """
+                Le pipeline s'est terminé avec succès.
+                Statut : ${currentBuild.currentResult}
+                Logs : ${env.BUILD_URL}
+                """,
+                attachLog: true
+            )
         }
     }
 }

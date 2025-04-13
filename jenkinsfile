@@ -93,17 +93,23 @@ pipeline {
         }
 
         stage('Déploiement sur Nexus') {
-            steps {
-                script {
-                    try {
-                        sh 'mvn deploy'
-                    } catch (Exception e) {
-                        echo "❌ Erreur Déploiement Nexus : ${e}"
-                        error "Échec déploiement Nexus"
-                    }
-                }
+    steps {
+        script {
+            try {
+                // Exécution de la commande Maven avec logs détaillés
+                sh 'mvn deploy -X'  // Ajout du mode débogage pour plus de détails
+            } catch (Exception e) {
+                // Affichage du message d'erreur avec les détails spécifiques
+                echo "❌ Erreur Déploiement Nexus : ${e.getMessage()}"
+                // Pour afficher plus de détails sur l'erreur
+                echo "Trace de l'erreur : ${e.getStackTrace().join('\n')}"
+                // Échec du pipeline
+                error "Échec déploiement Nexus"
             }
         }
+    }
+}
+
 
         stage('Construction de l’image Docker') {
             steps {

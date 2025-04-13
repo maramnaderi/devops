@@ -11,7 +11,9 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - stationSki:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql  # Spécification d'un chemin local pour les données MySQL
+    networks:
+      - frontend_network  # Connexion au réseau défini
 
   # Service backend Spring Boot
   app-ski:
@@ -30,14 +32,14 @@ services:
       }'
     stdin_open: true
     tty: true
-
-
+    networks:
+      - frontend_network  # Connexion au réseau défini
 
 # Volumes pour persistance des données MySQL
 volumes:
-  stationSki:
+  stationSki:  # Volume utilisé pour la persistance des données MySQL
 
 # Networks pour isoler les services
 networks:
   frontend_network:
-    driver: bridge
+    driver: bridge  # Réseau pour permettre aux services de communiquer

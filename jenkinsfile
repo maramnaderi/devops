@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'M2_HOME' // Assure-toi que Maven est bien configuré dans Jenkins
+        maven 'M2_HOME' // Remplace si ton outil Maven a un autre nom dans Jenkins
     }
 
     environment {
@@ -18,7 +18,7 @@ pipeline {
             steps {
                 git branch: 'master',
                     url: 'https://github.com/hwafa/atelier-jenkins.git',
-                    credentialsId: 'jenkins-github-token'
+                    credentialsId: '67f03885-84d3-4ed6-b3fb-836d5f2196e8'
             }
         }
 

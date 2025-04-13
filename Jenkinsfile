@@ -76,14 +76,11 @@ pipeline {
     }
 
     post {
-        always {
-            echo "====== Pipeline terminé ======"
-        }
-        success {
-            echo "✅ Pipeline exécuté avec succès"
-        }
         failure {
-            echo "❌ Échec de l'exécution du pipeline"
-        }
+        echo "💥 Build échoué, vérifie le stage précédent pour plus d'infos."
+    }
+    aborted {
+        echo "🛑 Build annulé ou timeout dépassé."
+    }
     }
 }

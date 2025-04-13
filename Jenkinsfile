@@ -18,18 +18,6 @@ pipeline {
                 }
             }
         }
-         stage('Déploiement sur Nexus') {
-            steps {
-                script {
-                    try {
-                        sh 'mvn deploy'
-                    } catch (Exception e) {
-                        echo "Erreur lors du déploiement sur Nexus : ${e}"
-                        error "Échec dans l'étape de déploiement sur Nexus"
-                    }
-                }
-            }
-        }
 
         
         stage('Compilation Maven') {
@@ -84,17 +72,19 @@ pipeline {
                 }
             }
         }
-    }
-    
-    post {
-        always {
-            cleanWs()
+                 stage('Déploiement sur Nexus') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn deploy'
+                    } catch (Exception e) {
+                        echo "Erreur lors du déploiement sur Nexus : ${e}"
+                        error "Échec dans l'étape de déploiement sur Nexus"
+                    }
+                }
+            }
         }
-        success {
-            echo 'Pipeline exécuté avec succès!'
-        }
-        failure {
-            echo 'La pipeline a échoué. Veuillez vérifier les logs pour plus de détails.'
-        }
+
     }
 }
+

@@ -34,54 +34,7 @@ pipeline {
                 }
             }
         }
-                stage('Construction de l’image Docker') {
-            steps {
-                script {
-                    try {
-                        sh 'docker build -t fadizaghdoud/gestion-station-ski:latest .'
-                    } catch (Exception e) {
-                        echo "Erreur lors de la construction de l'image Docker : ${e}"
-                        error "Échec dans l'étape de construction de l'image Docker"
-                    }
-                }
-            }
-        }
-
-        stage('Connexion à DockerHub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                    sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    try {
-                        sh "docker push fadizaghdoud/gestion-station-ski:latest"
-                        echo "✅ Image Docker poussée avec succès sur Docker Hub."
-                    } catch (Exception e) {
-                        echo "Erreur lors du push Docker : ${e}"
-                        error "Échec dans l'étape de push Docker"
-                    }
-                }
-            }
-        }
-
-        stage('Déploiement avec Docker Compose') {
-            steps {
-                script {
-                    try {
-                        sh 'docker-compose up -d --build'
-                    } catch (Exception e) {
-                        echo "Erreur lors du déploiement Docker Compose : ${e}"
-                        error "Échec dans le déploiement avec Docker Compose"
-                    }
-                }
-            }
-        }
-
+ 
 
         stage('Tests Unitaires avec Mockito') {
             steps {
@@ -152,6 +105,54 @@ pipeline {
                 }
             }
         }
+                       stage('Construction de l’image Docker') {
+            steps {
+                script {
+                    try {
+                        sh 'docker build -t fadizaghdoud/gestion-station-ski:latest .'
+                    } catch (Exception e) {
+                        echo "Erreur lors de la construction de l'image Docker : ${e}"
+                        error "Échec dans l'étape de construction de l'image Docker"
+                    }
+                }
+            }
+        }
+
+        stage('Connexion à DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    try {
+                        sh "docker push fadizaghdoud/gestion-station-ski:latest"
+                        echo "✅ Image Docker poussée avec succès sur Docker Hub."
+                    } catch (Exception e) {
+                        echo "Erreur lors du push Docker : ${e}"
+                        error "Échec dans l'étape de push Docker"
+                    }
+                }
+            }
+        }
+
+        stage('Déploiement avec Docker Compose') {
+            steps {
+                script {
+                    try {
+                        sh 'docker-compose up -d --build'
+                    } catch (Exception e) {
+                        echo "Erreur lors du déploiement Docker Compose : ${e}"
+                        error "Échec dans le déploiement avec Docker Compose"
+                    }
+                }
+            }
+        }
+
 
     }
 }

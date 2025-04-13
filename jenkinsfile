@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Checkout code') {
             steps {
-                git branch: 'master',
+                git branch: 'khairidinne',
                     url: 'https://github.com/maramnaderi/devops.git',
                     credentialsId: 'github-pat'
             }

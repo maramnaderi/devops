@@ -2,12 +2,14 @@ pipeline {
     agent any
 
     tools {
-        maven 'M2_HOME' // Assurez-vous que Maven est bien configuré dans Jenkins
+        maven 'M2_HOME' // Assurez-vous que Maven est bien défini dans Jenkins -> Global Tool Configuration
     }
 
     environment {
         APP_ENV = "DEV"
-        SONARQUBE = 'scanner' // Nom du serveur SonarQube que vous avez configuré dans Jenkins
+        SONARQUBE = 'scanner' // Nom du serveur SonarQube dans Jenkins
+        registryCredentials = 'nexus' // ID des credentials Nexus dans Jenkins
+        registry = '192.168.33.10:8083' // Adresse du registre Nexus
     }
 
     options {
@@ -15,33 +17,28 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout code') {
             steps {
                 git branch: 'khairidinne',
                     url: 'https://github.com/maramnaderi/devops.git',
-                    credentialsId: 'github-pat'
+                    credentialsId: 'github-pat' // Doit exister dans Jenkins (type: Personal Access Token)
             }
         }
 
-        stage('Build') {
+        stage('Build Maven project') {
             steps {
-                sh 'mvn install -Dmaven.test.skip=true'
+                sh 'mvn clean install -DskipTests'
             }
         }
 
         stage('SonarQube analysis') {
             steps {
                 script {
-                    // Exécution de l'analyse SonarQube
                     withSonarQubeEnv(SONARQUBE) {
                         sh 'mvn sonar:sonar -Dsonar.projectKey=mon-projet -Dsonar.host.url=http://172.26.59.33:9000'
                     }
                 }
-            }
-        }
-    stage('Build Maven project') {
-            steps {
-                sh 'mvn clean install -DskipTests'
             }
         }
 
@@ -51,22 +48,33 @@ pipeline {
             }
         }
 
+        stage('Push to Nexus Registry') {
+            steps {
+                script {
+                    docker.withRegistry("http://${registry}", registryCredentials) {
+                        sh "docker tag maramnaderi/my-app:latest ${registry}/my-app:latest"
+                        sh "docker push ${registry}/my-app:latest"
+                    }
+                }
+            }
+        }
+
         stage('Run application with docker-compose') {
             steps {
                 sh 'docker-compose up -d'
             }
         }
+    }
 
     post {
         always {
-            echo "======always======"
+            echo "====== Pipeline terminé ======"
         }
         success {
-            echo "=====pipeline executed successfully====="
+            echo "✅ Pipeline exécuté avec succès"
         }
         failure {
-            echo "======pipeline execution failed======"
+            echo "❌ Échec de l'exécution du pipeline"
         }
     }
 }
-

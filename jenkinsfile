@@ -1,28 +1,174 @@
 pipeline {
     agent any
 
+    environment {
+        SONAR_TOKEN = credentials('scanner') // Token SonarQube
+    }
+
     stages {
-        stage('Vérification Git') {
+
+        stage('Récupération du code') {
             steps {
-                echo 'Le dépôt a été cloné automatiquement via la configuration Jenkins.'
-                sh 'ls -la'
+                script {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/khairidinne']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/maramnaderi/devops.git',
+                            credentialsId: 'github-pat'
+                        ]]
+                    ])
+                }
             }
         }
 
-        stage('Build Maven') {
+        stage('Compilation Maven') {
             steps {
-                echo '📦 Démarrage du build Maven...'
-                sh 'mvn clean install'
+                script {
+                    try {
+                        sh 'mvn clean compile'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Compilation Maven : ${e}"
+                        error "Échec de la compilation Maven"
+                    }
+                }
+            }
+        }
+
+        stage('Tests Unitaires avec Mockito') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn test'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Tests Unitaires : ${e}"
+                        error "Échec des tests unitaires"
+                    }
+                }
+            }
+        }
+
+        stage('Génération du rapport JaCoCo') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn jacoco:report'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Rapport JaCoCo : ${e}"
+                        error "Échec génération rapport JaCoCo"
+                    }
+                }
+            }
+        }
+
+        stage('Analyse SonarQube') {
+            steps {
+                script {
+                    try {
+                        sh '''
+                            mvn sonar:sonar \
+                            -Dsonar.projectKey=projet-devops \
+                            -Dsonar.host.url=http://172.26.59.33:9000 \
+                            -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    } catch (Exception e) {
+                        echo "❌ Erreur Analyse SonarQube : ${e}"
+                        error "Échec analyse SonarQube"
+                    }
+                }
+            }
+        }
+
+        stage('Packaging Maven (sans tests)') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn clean package -DskipTests'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Packaging Maven : ${e}"
+                        error "Échec packaging Maven"
+                    }
+                }
+            }
+        }
+
+        stage('Déploiement sur Nexus') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn deploy'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Déploiement Nexus : ${e}"
+                        error "Échec déploiement Nexus"
+                    }
+                }
+            }
+        }
+
+        stage('Construction de l’image Docker') {
+            steps {
+                script {
+                    try {
+                        sh 'docker build -t nadianb/foyer:latest .'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Construction Image Docker : ${e}"
+                        error "Échec build image Docker"
+                    }
+                }
+            }
+        }
+
+        stage('Connexion à DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docke', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    try {
+                        sh "docker push nadianb/foyer:latest"
+                        echo "✅ Image Docker poussée avec succès sur Docker Hub."
+                    } catch (Exception e) {
+                        echo "❌ Erreur Push Docker : ${e}"
+                        error "Échec push Docker"
+                    }
+                }
+            }
+        }
+
+        stage('Déploiement avec Docker Compose') {
+            steps {
+                script {
+                    try {
+                        sh 'docker-compose up -d --build'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Docker Compose : ${e}"
+                        error "Échec déploiement Docker Compose"
+                    }
+                }
             }
         }
     }
 
     post {
-        success {
-            echo '✅ Pipeline terminé avec succès.'
+        always {
+            emailext(
+                from: 'hlelikhairi04@gmail.com',
+                to: 'khairidinne.hleli@esprit.tn',
+                subject: "Pipeline ${currentBuild.fullDisplayName} - Statut: ${currentBuild.currentResult}",
+                body: """
+                📊 Statut du build : ${currentBuild.currentResult}
+                🔎 Projet SonarQube : projet-devops
+                🔗 Logs Jenkins : ${env.BUILD_URL}
+                """,
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+                attachLog: true
+            )
         }
-        failure {
-            echo '❌ Échec du pipeline.'
-        }
+        // ❌ Blocs de succès et d'échec supprimés
     }
 }

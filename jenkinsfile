@@ -39,7 +39,23 @@ pipeline {
                 }
             }
         }
-    }
+    stage('Build Maven project') {
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+        stage('Build Docker image') {
+            steps {
+                sh 'docker-compose build'
+            }
+        }
+
+        stage('Run application with docker-compose') {
+            steps {
+                sh 'docker-compose up -d'
+            }
+        }
 
     post {
         always {

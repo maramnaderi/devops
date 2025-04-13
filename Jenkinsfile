@@ -106,7 +106,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'docker build -t fadizaghdoud/gestion-station-ski:latest .'
+                        sh 'docker build -t haythem2000/gestion-station-ski:latest .'
                     } catch (Exception e) {
                         echo "Erreur lors de la construction de l'image Docker : ${e}"
                         error "Échec dans l'étape de construction de l'image Docker"

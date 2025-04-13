@@ -19,7 +19,7 @@ pipeline {
             steps {
                 git branch: 'master',
                     url: 'https://github.com/votre-utilisateur/votre-depot.git',
-                    credentialsId: '67f03885-84d3-4ed6-b3fb-836d5f2196e8'
+                    credentialsId: 'github-pat'
             }
         }
 

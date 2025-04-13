@@ -148,29 +148,13 @@ pipeline {
                     try {
                         sh 'docker-compose up -d --build'
                     } catch (Exception e) {
-                        echo "❌ Erreur Docker Compose : ${e}"
-                        error "Échec déploiement Docker Compose"
+                        echo "Erreur lors du déploiement Docker Compose : ${e}"
+                        error "Échec dans le déploiement avec Docker Compose"
                     }
                 }
             }
         }
-    }
 
-    post {
-        always {
-            emailext(
-                from: 'hlelikhairi04@gmail.com',
-                to: 'khairidinne.hleli@esprit.tn',
-                subject: "Pipeline ${currentBuild.fullDisplayName} - Statut: ${currentBuild.currentResult}",
-                body: """
-                📊 Statut du build : ${currentBuild.currentResult}
-                🔎 Projet SonarQube : projet-devops
-                🔗 Logs Jenkins : ${env.BUILD_URL}
-                """,
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-                attachLog: true
-            )
-        }
-        // ❌ Blocs de succès et d'échec supprimés
+
     }
 }

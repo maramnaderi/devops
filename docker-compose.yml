@@ -17,8 +17,7 @@ services:
 
   # Service backend Spring Boot
   app-ski:
-    depends_on:
-      - mysql
+    build: .  # 👈 build local à partir du Dockerfile
     image: haythemraggad/my-app:latest
     restart: on-failure
     ports:

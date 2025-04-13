@@ -1,51 +1,35 @@
 pipeline {
     agent any
-    // ou
-    /*
-    agent {
-        node {
-            label 'build'
-        }
-    }
-    */
-
-    tools {
-        maven 'M2_HOME'
-    }
-options {
-    timeout(time: 10, unit: 'MINUTES')
-}
-
 
     environment {
-        APP_ENV = "DEV"
+        GITHUB_REPO = 'https://github.com/maramnaderi/devops.git'
     }
 
     stages {
-        stage('Code Checkout') {
+        stage('Checkout') {
             steps {
-                git branch: 'master',
-                    url: 'https://github.com/hwafa/atelier-jenkins.git',
-          
+                git branch: 'khairidinne', url: "${GITHUB_REPO}"
             }
         }
 
-        stage('Code Build') {
+        stage('Build') {
             steps {
-                sh 'mvn install -Dmaven.test.skip=true'
+                echo 'Building project...'
+            }
+        }
+
+        stage('Use GitHub Token') {
+            steps {
+                withCredentials([string(credentialsId: 'jenkins-github-token', variable: 'GITHUB_TOKEN')]) {
+                    sh 'echo "Using GitHub token: $GITHUB_TOKEN"'
+                }
             }
         }
     }
 
     post {
         always {
-            echo "======always======"
-        }
-        success {
-            echo "=====pipeline executed successfully ====="
-        }
-        failure {
-            echo "======pipeline execution failed======"
+            echo '======pipeline finished======'
         }
     }
 }

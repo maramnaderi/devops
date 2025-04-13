@@ -1,54 +1,113 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'M2_HOME'
-    }
-
-    options {
-        timestamps()
-        timeout(time: 10, unit: 'MINUTES')
-    }
-
     environment {
-        imageName = 'my-app'
+        SONAR_TOKEN = credentials('scanner') // Token SonarQube
     }
 
     stages {
 
-        stage('Checkout code') {
+        stage('Récupération du code') {
             steps {
-                git branch: 'Haythem',
-                    url: 'https://github.com/maramnaderi/devops.git',
-                    credentialsId: 'github-pat'
+                script {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/Haythem']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/maramnaderi/devops.git',
+                            credentialsId: 'github-pat'
+                        ]]
+                    ])
+                }
             }
         }
 
-        stage('Build Maven project') {
+        stage('Compilation Maven') {
             steps {
-                sh 'mvn clean install -DskipTests'
+                script {
+                    try {
+                        sh 'mvn clean compile'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Compilation Maven : ${e}"
+                        error "Échec de la compilation Maven"
+                    }
+                }
             }
         }
 
-        stage('Build Docker image') {
+        stage('Tests Unitaires avec Mockito') {
             steps {
-                sh "docker-compose build"
+                script {
+                    try {
+                        sh 'mvn test'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Tests Unitaires : ${e}"
+                        error "Échec des tests unitaires"
+                    }
+                }
             }
         }
 
-        stage('Run application with Docker Compose') {
+        stage('Génération du rapport JaCoCo') {
             steps {
-                sh 'docker-compose up -d'
+                script {
+                    try {
+                        sh 'mvn jacoco:report'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Rapport JaCoCo : ${e}"
+                        error "Échec génération rapport JaCoCo"
+                    }
+                }
             }
         }
+
+       
+
+        stage('Packaging Maven (sans tests)') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn clean package -DskipTests'
+                    } catch (Exception e) {
+                        echo "❌ Erreur Packaging Maven : ${e}"
+                        error "Échec packaging Maven"
+                    }
+                }
+            }
+        }
+
+         stage('Push Docker Image') {
+            steps {
+                script {
+                    try {
+                        sh "docker push nadianb/foyer:latest"
+                        echo "✅ Image Docker poussée avec succès sur Docker Hub."
+                    } catch (Exception e) {
+                        echo "❌ Erreur Push Docker : ${e}"
+                        error "Échec push Docker"
+                    }
+                }
+            }
+        }
+
+       
     }
 
     post {
-        failure {
-            echo "💥 Build échoué, vérifie les étapes précédentes."
+        always {
+            emailext(
+                from: 'haythem.raggad@esprit.tn',
+                to: 'haythemraggad1920@gmail.com',
+                subject: "Pipeline ${currentBuild.fullDisplayName} - Statut: ${currentBuild.currentResult}",
+                body: """
+                📊 Statut du build : ${currentBuild.currentResult}
+                🔎 Projet SonarQube : projet-devops
+                🔗 Logs Jenkins : ${env.BUILD_URL}
+                """,
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+                attachLog: true
+            )
         }
-        aborted {
-            echo "🛑 Build annulé ou timeout dépassé."
-        }
+        // ❌ Blocs de succès et d'échec supprimés
     }
 }

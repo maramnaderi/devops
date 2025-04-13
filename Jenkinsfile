@@ -7,16 +7,16 @@ pipeline {
 
     environment {
         APP_ENV = "DEV"
-        SONARQUBE = 'scanner' // Nom du serveur SonarQube configuré dans Jenkins
-        registryCredentials = 'nexus' // ID des credentials pour Nexus dans Jenkins
-        registry = '192.168.33.10:8083' // Adresse du registre Nexus
-        imageName = 'my-app' // Nom de l’image Docker
+        SONARQUBE = 'scanner'
+        registryCredentials = 'nexus'
+        registry = '192.168.33.10:8083'
+        imageName = 'my-app'
     }
 
     options {
-        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm'])
-        timestamps()
-        timeout(time: 10, unit: 'MINUTES')
+       ansiColor('xterm')
+       timestamps()
+       timeout(time: 10, unit: 'MINUTES')
     }
 
     stages {

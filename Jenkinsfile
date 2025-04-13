@@ -102,6 +102,20 @@ pipeline {
                 }
             }
         }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    try {
+                        sh "docker push nadianb/foyer:latest"
+                        echo "✅ Image Docker poussée avec succès sur Docker Hub."
+                    } catch (Exception e) {
+                        echo "Erreur lors du push Docker : ${e}"
+                        error "Échec dans l'étape de push Docker"
+                    }
+                }
+            }
+        }
+
 
     }
 }

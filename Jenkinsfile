@@ -14,7 +14,9 @@ pipeline {
     }
 
     options {
-        timeout(time: 1, unit: 'MINUTES')
+        ansiColor('xterm')
+    timestamps()
+    timeout(time: 10, unit: 'MINUTES') // pour éviter que le build reste bloqué trop longtemps
     }
 
     stages {

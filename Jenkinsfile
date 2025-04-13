@@ -8,14 +8,21 @@ pipeline {
                 sh 'ls -la'
             }
         }
+
+        stage('Build Maven') {
+            steps {
+                echo '📦 Démarrage du build Maven...'
+                sh 'mvn clean install'
+            }
+        }
     }
 
     post {
         success {
-            echo '✅ Connexion à GitHub réussie.'
+            echo '✅ Pipeline terminé avec succès.'
         }
         failure {
-            echo '❌ Échec de la connexion au dépôt GitHub.'
+            echo '❌ Échec du pipeline.'
         }
     }
 }

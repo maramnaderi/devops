@@ -152,18 +152,6 @@ pipeline {
                 }
             }
         }
-        stage('Construction de l’image Docker') {
-            steps {
-                script {
-                    try {
-                        sh 'docker build -t nadianb/foyer:latest .'
-                    } catch (Exception e) {
-                        echo "Erreur lors de la construction de l'image Docker : ${e}"
-                        error "Échec dans l'étape de construction de l'image Docker"
-                    }
-                }
-            }
-        }
 
     }
 }

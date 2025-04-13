@@ -20,7 +20,7 @@ pipeline {
 
         stage('Checkout code') {
             steps {
-                git branch: 'khairidinne',
+                git branch: 'Haythem',
                     url: 'https://github.com/maramnaderi/devops.git',
                     credentialsId: 'github-pat' // Doit exister dans Jenkins (type: Personal Access Token)
             }

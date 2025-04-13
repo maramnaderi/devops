@@ -9,7 +9,7 @@ pipeline {
         APP_ENV = "DEV"
         SONARQUBE = 'scanner' // Nom du serveur SonarQube dans Jenkins
         registryCredentials = 'nexus' // ID des credentials Nexus dans Jenkins
-        registry = '192.168.33.10:8083' // Adresse de Nexus (sans HTTPS si ce n'est pas sécurisé)
+        registry = '172.26.59.33:8083' // Adresse de Nexus (sans HTTPS si ce n'est pas sécurisé)
         imageName = 'my-app' // Nom de l’image à builder et à pousser
     }
 

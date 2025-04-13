@@ -2,11 +2,12 @@ pipeline {
     agent any
 
     tools {
-        maven 'M2_HOME' // Assurez-vous que Maven est correctement configuré dans Jenkins
+        maven 'M2_HOME' // Assurez-vous que Maven est bien configuré dans Jenkins
     }
 
     environment {
         APP_ENV = "DEV"
+        SONARQUBE = 'SonarQube' // Nom du serveur SonarQube que vous avez configuré dans Jenkins
     }
 
     options {
@@ -16,15 +17,26 @@ pipeline {
     stages {
         stage('Checkout code') {
             steps {
-                git branch: 'khairidinne',
-                    url: 'https://github.com/maramnaderi/devops.git', // Remplacez par l'URL correcte du dépôt
+                git branch: 'master',
+                    url: 'https://github.com/votre-utilisateur/votre-depot.git',
                     credentialsId: '67f03885-84d3-4ed6-b3fb-836d5f2196e8'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'mvn install -Dmaven.test.skip=true' // Commande Maven pour compiler sans tests
+                sh 'mvn install -Dmaven.test.skip=true'
+            }
+        }
+
+        stage('SonarQube analysis') {
+            steps {
+                script {
+                    // Exécution de l'analyse SonarQube
+                    withSonarQubeEnv(SONARQUBE) {
+                        sh 'mvn sonar:sonar -Dsonar.projectKey=mon-projet -Dsonar.host.url=http://localhost:9000'
+                    }
+                }
             }
         }
     }

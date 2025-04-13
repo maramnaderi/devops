@@ -17,7 +17,7 @@ services:
   app-ski:
     depends_on:
       - mysql
-    image: maramnaderi/my-app:latest
+    image: haythemraggad/my-app:latest
     restart: on-failure
     ports:
       - "8089:8089"

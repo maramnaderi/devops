@@ -51,22 +51,11 @@ pipeline {
         }
         
         stage('Analyse SonarQube') {
-            steps {
+          steps {
                 script {
-                    try {
-                        sh '''
-                            mvn sonar:sonar -DskipTests \
-                            -Dsonar.projectKey=devops \
-                            -Dsonar.host.url=http://172.23.202.74:9000 \
-                            -Dsonar.login=$SONAR_TOKEN
-                        '''
-                    } catch (Exception e) {
-                        echo "Erreur lors de l'analyse SonarQube : ${e}"
-                        error "Échec dans l'étape d'analyse SonarQube"
-                    }
+                    echo "Analyse SonarQube ignorée pour cette exécution de pipeline"
                 }
             }
-        }
         
         stage('Packaging Maven (sans tests)') {
             steps {

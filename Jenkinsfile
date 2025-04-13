@@ -20,11 +20,12 @@ pipeline {
         }
 
         
+      
         stage('Compilation Maven') {
             steps {
                 script {
                     try {
-                        sh 'mvn clean compile -e'
+                        sh 'mvn clean compile'
                     } catch (Exception e) {
                         echo "Erreur lors de l'exécution de Maven : ${e}"
                         error "Échec dans l'étape de compilation Maven"
@@ -32,30 +33,47 @@ pipeline {
                 }
             }
         }
-        
-        // Ignorer les tests pour éviter les problèmes de base de données
-        stage('Tests Unitaires (ignorés)') {
+ 
+
+        stage('Tests Unitaires avec Mockito') {
             steps {
                 script {
-                    echo "Tests ignorés pour cette exécution de pipeline"
+                    try {
+                        sh 'mvn test'
+                    } catch (Exception e) {
+                        echo "Erreur lors des tests unitaires : ${e}"
+                        error "Échec dans l'étape des tests unitaires"
+                    }
                 }
             }
         }
-        
-        // Ignorer JaCoCo car il dépend des tests
-        stage('Génération du rapport JaCoCo (ignoré)') {
+
+        stage('Génération du rapport JaCoCo') {
             steps {
                 script {
-                    echo "Rapport JaCoCo ignoré car les tests sont désactivés"
+                    try {
+                        sh 'mvn jacoco:report'
+                    } catch (Exception e) {
+                        echo "Erreur lors de la génération du rapport JaCoCo : ${e}"
+                        error "Échec dans la génération du rapport JaCoCo"
+                    }
                 }
             }
-        }
-        
-        // Ignorer SonarQube qui semble aussi avoir des problèmes
-        stage('Analyse SonarQube (ignorée)') {
+        }  
+        stage('Analyse SonarQube') {
             steps {
                 script {
-                    echo "Analyse SonarQube ignorée pour cette exécution de pipeline"
+                    try {
+                        sh '''
+                            mvn sonar:sonar \
+                            -Dsonar.projectKey=devops \
+                            -Dsonar.host.url=http://172.28.240.88:9000 \
+                            -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    } catch (Exception e) {
+                        echo "Erreur lors de l'analyse SonarQube : ${e}"
+                        error "Échec dans l'étape d'analyse SonarQube"
+                    }
                 }
             }
         }
@@ -64,7 +82,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'mvn clean package -DskipTests -e'
+                        sh 'mvn clean package -DskipTests'
                     } catch (Exception e) {
                         echo "Erreur lors du packaging : ${e}"
                         error "Échec dans l'étape de packaging"

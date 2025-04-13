@@ -2,29 +2,27 @@ pipeline {
     agent any
 
     tools {
-        maven 'M2_HOME'
-    }
-
-    options {
-        timeout(time: 1, unit: 'MINUTES') // corrigé en minutes pour éviter un timeout trop court
+        maven 'M2_HOME' // Assure-toi que Maven est bien configuré dans Jenkins
     }
 
     environment {
         APP_ENV = "DEV"
     }
 
+    options {
+        timeout(time: 1, unit: 'MINUTES')
+    }
+
     stages {
-        stage('Code Checkout') {
+        stage('Checkout code') {
             steps {
-                git(
-                    branch: 'master',
+                git branch: 'master',
                     url: 'https://github.com/hwafa/atelier-jenkins.git',
-                    credentialsId: 'jenkins-example-github-pat'
-                )
+                    credentialsId: 'jenkins-github-token'
             }
         }
 
-        stage('Code Build') {
+        stage('Build') {
             steps {
                 sh 'mvn install -Dmaven.test.skip=true'
             }

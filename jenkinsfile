@@ -3,7 +3,8 @@ pipeline {
 
     tools {
         maven 'Maven 3.6.3'
-        jdk 'JAVA_HOME' 
+        jdk 'JAVA_HOME'
+        sonarqube 'scanner'
     }
 
     environment {
@@ -12,17 +13,6 @@ pipeline {
     }
 
     stages {
-        stage('Debug Environment') {
-            steps {
-                // Print environment variables to diagnose issues
-                sh 'echo "JAVA_HOME: $JAVA_HOME"'
-                sh 'echo "PATH: $PATH"'
-                sh 'java -version || true'
-                sh 'mvn -version || true'
-                sh 'ls -la $JAVA_HOME/bin || true'
-            }
-        }
-
         stage('Cloner le dépôt') {
             steps {
                 git branch: 'Nihed-PistManagment', url: 'https://github.com/maramnaderi/devops.git'
@@ -34,9 +24,51 @@ pipeline {
                 sh 'mvn clean package -DskipTests'
             }
         }
+
+        stage('Tests unitaires') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Tests d\'intégration') {
+            steps {
+                sh 'mvn integration-test -DskipUnitTests'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'scanner'
+                    withSonarQubeEnv('SonarQube') {
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
     }
 
     post {
+        success {
+            echo 'Build et verification réussis!'
+        }
+        failure {
+            echo 'La pipeline a échoué.'
+        }
         always {
             echo 'Build completed'
         }

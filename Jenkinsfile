@@ -34,6 +34,18 @@ pipeline {
                 }
             }
         }
+                stage('Déploiement sur Nexus') {
+            steps {
+                script {
+                    try {
+                        sh 'mvn deploy'
+                    } catch (Exception e) {
+                        echo "Erreur lors du déploiement sur Nexus : ${e}"
+                        error "Échec dans l'étape de déploiement sur Nexus"
+                    }
+                }
+            }
+        }
 
         stage('Tests Unitaires avec Mockito') {
             steps {
@@ -92,18 +104,7 @@ pipeline {
             }
         }
         
-        stage('Déploiement sur Nexus') {
-            steps {
-                script {
-                    try {
-                        sh 'mvn deploy'
-                    } catch (Exception e) {
-                        echo "Erreur lors du déploiement sur Nexus : ${e}"
-                        error "Échec dans l'étape de déploiement sur Nexus"
-                    }
-                }
-            }
-        }
+
 
     }
 }

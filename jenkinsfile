@@ -115,7 +115,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'docker build -t khairidinne/GestionSki:latest .'
+                        sh 'docker build -t khairidinne/gestionski:latest .'
                     } catch (Exception e) {
                         echo "❌ Erreur Construction Image Docker : ${e}"
                         error "Échec build image Docker"

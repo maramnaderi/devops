@@ -26,7 +26,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'mvn clean compile'
+                        sh 'mvn clean compile -e'
                     } catch (Exception e) {
                         echo "Erreur lors de l'exécution de Maven : ${e}"
                         error "Échec dans l'étape de compilation Maven"
@@ -39,9 +39,19 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'mvn test'
+                        sh 'mvn test -e'
                     } catch (Exception e) {
                         echo "Erreur lors des tests unitaires : ${e}"
+                        // Affichage des logs de test échoués
+                        sh '''
+                            echo "===== Logs de tests échoués ====="
+                            if [ -d target/surefire-reports ]; then
+                                cat target/surefire-reports/*.txt || true
+                                cat target/surefire-reports/*.dumpstream || true
+                            else
+                                echo "Aucun rapport trouvé"
+                            fi
+                        '''
                         error "Échec dans l'étape des tests unitaires"
                     }
                 }
@@ -52,7 +62,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'mvn jacoco:report'
+                        sh 'mvn jacoco:report -e'
                     } catch (Exception e) {
                         echo "Erreur lors de la génération du rapport JaCoCo : ${e}"
                         error "Échec dans la génération du rapport JaCoCo"
@@ -66,7 +76,7 @@ pipeline {
                 script {
                     try {
                         sh '''
-                            mvn sonar:sonar \
+                            mvn sonar:sonar -e \
                             -Dsonar.projectKey=devops \
                             -Dsonar.host.url=http://172.23.202.74:9000 \
                             -Dsonar.login=$SONAR_TOKEN
@@ -83,7 +93,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'mvn clean package -DskipTests'
+                        sh 'mvn clean package -DskipTests -e'
                     } catch (Exception e) {
                         echo "Erreur lors du packaging : ${e}"
                         error "Échec dans l'étape de packaging"

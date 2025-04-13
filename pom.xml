@@ -90,7 +90,7 @@
 </build>
 <distributionManagement>
 <repository>
-<id>deploymentRepo</id>
+<id>nexus</id>
 <name>docker-repo</name>
 <url>http://172.26.59.33:8081/repository/maven-releases/</url>
 </repository>

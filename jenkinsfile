@@ -19,7 +19,7 @@ pipeline {
             steps {
                 git branch: 'khairidinne',
                     url: 'https://github.com/maramnaderi/devops.git',
-                    credentialsId: 'github-pat'
+                    credentialsId: ''
             }
         }
 

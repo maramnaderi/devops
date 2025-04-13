@@ -92,14 +92,18 @@ pipeline {
             }
         }
         
-                stage('Déploiement sur Nexus') {
+        stage('Déploiement sur Nexus') {
             steps {
                 script {
-                    try {
-                        sh 'mvn deploy'
-                    } catch (Exception e) {
-                        echo "Erreur lors du déploiement sur Nexus : ${e}"
-                        error "Échec dans l'étape de déploiement sur Nexus"
+                    // Use credentials from Jenkins
+                    withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'admin', passwordVariable: '123456')]) {
+                        try {
+                            // Use the credentials in the deploy command
+                            sh "mvn deploy -Dusername=$NEXUS_USER -Dpassword=$NEXUS_PASS"
+                        } catch (Exception e) {
+                            echo "Erreur lors du déploiement sur Nexus : ${e}"
+                            error "Échec dans l'étape de déploiement sur Nexus"
+                        }
                     }
                 }
             }

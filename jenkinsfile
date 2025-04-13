@@ -41,6 +41,12 @@ pipeline {
             }
         }
 
+        stage('Prepare Libraries') {
+            steps {
+                sh 'mvn dependency:copy-dependencies -DoutputDirectory=target/lib'
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 script {

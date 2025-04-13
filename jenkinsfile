@@ -1,16 +1,12 @@
 pipeline {
-    agent {
-        node {
-            label 'build'
-        }
-    }
+    agent any
 
     tools {
         maven 'M2_HOME'
     }
 
     options {
-        timeout(time: 1, unit: 'SECONDS')
+        timeout(time: 1, unit: 'MINUTES') // corrigé en minutes pour éviter un timeout trop court
     }
 
     environment {
@@ -20,9 +16,11 @@ pipeline {
     stages {
         stage('Code Checkout') {
             steps {
-                git branch: 'master',
+                git(
+                    branch: 'master',
                     url: 'https://github.com/hwafa/atelier-jenkins.git',
                     credentialsId: 'jenkins-example-github-pat'
+                )
             }
         }
 
@@ -38,7 +36,7 @@ pipeline {
             echo "======always======"
         }
         success {
-            echo "=====pipeline executed successfully ====="
+            echo "=====pipeline executed successfully====="
         }
         failure {
             echo "======pipeline execution failed======"

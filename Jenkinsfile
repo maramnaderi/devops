@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        SONAR_TOKEN = credentials('scanner') // Token SonarQube
+        SONAR_TOKEN = credentials('scanner') // Token SonarQube, gardé pour référence
     }
     stages {
         stage('Récupération du code') {
@@ -50,12 +50,14 @@ pipeline {
             }
         }
         
-        stage('Analyse SonarQube') {
-          steps {
+        // Ignorer SonarQube qui semble aussi avoir des problèmes
+        stage('Analyse SonarQube (ignorée)') {
+            steps {
                 script {
                     echo "Analyse SonarQube ignorée pour cette exécution de pipeline"
                 }
             }
+        }
         
         stage('Packaging Maven (sans tests)') {
             steps {

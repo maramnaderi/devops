@@ -132,7 +132,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh "docker push nadianb/foyer:latest"
+                        sh "docker push khairidinne/gestionski:latest"
                         echo "✅ Image Docker poussée avec succès sur Docker Hub."
                     } catch (Exception e) {
                         echo "❌ Erreur Push Docker : ${e}"

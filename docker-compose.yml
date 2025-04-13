@@ -1,9 +1,8 @@
-
 version: '3.8'
 
 services:
-  # Service pour la base de données MySQL
   mysql:
+    container_name: mysql-db
     image: mysql:8.0
     restart: unless-stopped
     environment:
@@ -13,9 +12,11 @@ services:
       - "3306:3306"
     volumes:
       - stationSki:/var/lib/mysql
+    networks:
+      - frontend_network
 
-  # Service backend Spring Boot
   app-ski:
+    container_name: app-ski-backend
     depends_on:
       - mysql
     image: khairidinne/gestionski:latest
@@ -31,14 +32,12 @@ services:
       }'
     stdin_open: true
     tty: true
+    networks:
+      - frontend_network
 
-
-
-# Volumes pour persistance des données MySQL
 volumes:
   stationSki:
 
-# Networks pour isoler les services
 networks:
   frontend_network:
     driver: bridge

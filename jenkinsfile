@@ -12,6 +12,7 @@ pipeline {
         registry = '172.17.0.1:8085'
         registryCredentials = 'nexus'
         DOCKER_REPO = "${registry}/gestion-pist"
+        dockerHubRepo = "localhost:8085/gestion-pist"
     }
 
     stages {
@@ -74,7 +75,23 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Image (Inline Dockerfile)') {
+            steps {
+                script {
+                    def imageTag = "v1.${BUILD_NUMBER}"
+                    writeFile file: 'Dockerfile', text: '''
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY target/*.jar /app/app.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+'''
+                    sh "docker build -t ${dockerHubRepo}:${imageTag} ."
+                }
+            }
+        }
+
+        stage('Build Docker Image (Docker Compose)') {
             steps {
                 script {
                     def imageTag = "v1.${BUILD_NUMBER}"
@@ -82,7 +99,6 @@ pipeline {
                     def nexusLatest = "${DOCKER_REPO}:latest"
                     def localImage = "localhost:8085/gestion-pist:latest"
 
-                    // Build using docker-compose
                     sh '''
                         if [ ! -w /var/run/docker.sock ]; then
                             echo "❌ No Docker permission. Add user to docker group or fix /var/run/docker.sock permissions."
@@ -96,7 +112,6 @@ pipeline {
                         error "❌ Image ${localImage} not found after build!"
                     }
 
-                    // Tag image
                     sh "docker tag ${localImage} ${nexusImage}"
                     sh "docker tag ${localImage} ${nexusLatest}"
                 }
@@ -123,6 +138,7 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
         success {

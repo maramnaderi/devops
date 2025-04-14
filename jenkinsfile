@@ -34,7 +34,6 @@ pipeline {
             post {
                 always {
                     junit '**/target/surefire-reports/*.xml'
-                    jacoco execPattern: '**/target/jacoco.exec'
                 }
             }
         }
@@ -45,19 +44,13 @@ pipeline {
             }
         }
 
-        stage('Code Coverage Report') {
+        stage('Code Coverage') {
             steps {
                 sh 'mvn jacoco:report'
-            }
-            post {
-                success {
-                    jacoco(
-                        execPattern: '**/target/jacoco.exec',
-                        classPattern: '**/target/classes',
-                        sourcePattern: '**/src/main/java',
-                        exclusionPattern: '**/src/test*'
-                    )
-                }
+                sh 'mkdir -p target/site/jacoco'
+                // Archive the JaCoCo report so it can be accessed through Jenkins UI
+                archiveArtifacts artifacts: 'target/site/jacoco/**', allowEmptyArchive: true
+                echo 'JaCoCo coverage report available in the build artifacts'
             }
         }
 

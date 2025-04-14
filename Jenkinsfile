@@ -1,6 +1,7 @@
 pipeline {
     agent any
     environment {
+        DOCKER_IMAGE = 'haythem2000/gestion-station-ski:latest'
         SONAR_TOKEN = credentials('scanner') // Token SonarQube, gardé pour référence
     }
     stages {

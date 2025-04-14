@@ -1,22 +1,35 @@
 version: '3.8'
 
 services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_DATABASE: stationSki
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
   spring_app:
     build:
       context: .
       dockerfile: Dockerfile
     image: marwaniwael/gestion-ski:${IMAGE_TAG:-latest}
     container_name: spring_backend
+    depends_on:
+      - mysql
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/stationSki?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD:
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL5InnoDBDialect
-
 
       # JPA Configuration
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL5InnoDBDialect
       SPRING_JPA_SHOW_SQL: "true"
       SPRING_JPA_OPEN_IN_VIEW: "false"
 
@@ -31,16 +44,15 @@ services:
 
       # Time Zone
       TZ: Africa/Tunis
-      
+
       # Piste Management Focus
       APP_COMPONENT: piste-management
-      # Piste-specific configuration
       PISTE_SERVICE_ENABLED: "true"
       PISTE_DEFAULT_COLOR: "RED"
       PISTE_SERVICE_LOGGING: "DEBUG"
       PISTE_API_PATH: "/api/pistes"
-      
-      # Swagger documentation for Piste API
+
+      # Swagger documentation
       SPRINGDOC_SWAGGER_UI_PATH: "/swagger-ui.html"
       SPRINGDOC_API_DOCS_PATH: "/v3/api-docs"
       SPRINGDOC_PACKAGES_TO_SCAN: "tn.esprit.spring.controllers"
@@ -55,3 +67,11 @@ services:
       retries: 3
       start_period: 40s
     restart: always
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:

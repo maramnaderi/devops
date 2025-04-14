@@ -46,6 +46,33 @@ pipeline {
                 sh 'mvn dependency:copy-dependencies -DoutputDirectory=target/lib'
             }
         }
+        stage('Building images') { 
+            steps{ 
+                script { 
+                    // Use the build number as part of the image tag
+                    def imageTag = "v1.${BUILD_NUMBER}"
+                    // Set environment variable for docker-compose
+                    withEnv(["IMAGE_TAG=${imageTag}"]) {
+                        sh 'docker-compose build'
+                    }
+                    // Tag and prepare for push
+                    sh "docker tag marwaniwael/gestion-ski:${imageTag} marwaniwael/gestion-ski:latest"
+                } 
+            } 
+        }
+        
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    def imageTag = "v1.${BUILD_NUMBER}"
+                    withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
+                        sh 'docker login -u marwaniwael -p ${DOCKER_HUB_PASSWORD}'
+                        sh "docker push marwaniwael/gestion-ski:${imageTag}"
+                        sh 'docker push marwaniwael/gestion-ski:latest'
+                    }
+                }
+            }
+        }
 
         stage('SonarQube Analysis') {
             steps {

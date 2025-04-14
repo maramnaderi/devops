@@ -49,26 +49,31 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                script {
-                    def tag = "v1.${env.BUILD_NUMBER}"
-                    env.IMAGE_TAG = tag
-                    withEnv(["IMAGE_TAG=${tag}"]) {
-                        sh 'docker-compose build'
-                    }
-                    sh "docker tag ${DOCKER_REPO}:${tag} ${DOCKER_REPO}:latest"
+        steps {
+            script {
+                def imageTag = "v1.${BUILD_NUMBER}"
+                def fullImage = "nihedxtn/gestion-pist:${imageTag}"
+                def latestImage = "nihedxtn/gestion-pist:latest"
+                
+                withEnv(["IMAGE_TAG=${imageTag}"]) {
+                    sh 'docker-compose build spring-backend'
                 }
+
+                // Tag the image correctly for Docker Hub
+                sh "docker tag nihed/gestion-pist:${imageTag} ${fullImage}"
+                sh "docker tag nihed/gestion-pist:${imageTag} ${latestImage}"
             }
         }
+         }
 
         stage('Push Docker Image') {
             steps {
                 script {
-                    def tag = env.IMAGE_TAG
+                    def imageTag = "v1.${BUILD_NUMBER}"
                     withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
                         sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u nihedxtn --password-stdin"
-                        sh "docker push ${DOCKER_REPO}:${tag}"
-                        sh "docker push ${DOCKER_REPO}:latest"
+                        sh "docker push nihedxtn/gestion-pist:${imageTag}"
+                        sh "docker push nihedxtn/gestion-pist:latest"
                     }
                 }
             }

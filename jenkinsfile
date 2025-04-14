@@ -58,22 +58,6 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image (Inline Dockerfile)') {
-            steps {
-                script {
-                    def imageTag = "v1.${BUILD_NUMBER}"
-                    writeFile file: 'Dockerfile', text: '''
-FROM openjdk:17-jdk-slim
-WORKDIR /app
-COPY target/*.jar /app/app.jar
-EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
-'''
-                    sh "docker build -t ${dockerHubRepo}:${imageTag} ."
-                }
-            }
-        }
-
         stage('Build Docker Image (Docker Compose)') {
             steps {
                 script {
@@ -106,9 +90,8 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]
                 sh 'docker images'
             }
         }
-
-        
-
+    } // 👈 This was missing!
+    
     post {
         success {
             echo '✅ All stages passed. Deployment ready!'

@@ -59,7 +59,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: nihedxtn/gestion-pist
+    image: localhost:8085/gestion-pist
     container_name: spring-backend
     depends_on:
       - mysql-db

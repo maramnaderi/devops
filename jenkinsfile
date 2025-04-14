@@ -120,7 +120,7 @@ pipeline {
                     withSonarQubeEnv('scanner') {
                         sh "${scannerHome}/bin/sonar-scanner \
                            -Dsonar.projectKey=gestion-pist \
-                           -Dsonar.host.url=http://sonarqube:9000 \
+                           -Dsonar.host.url=http://sonar:9000 \
                            -Dsonar.sources=src \
                            -Dsonar.java.binaries=target/classes"
                     }

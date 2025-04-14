@@ -9,6 +9,7 @@ pipeline {
     environment {
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
+        DOCKER_REPO = 'nihedxtn/gestion-pist'
     }
 
     stages {
@@ -37,7 +38,7 @@ pipeline {
 
         stage('Tests d\'intégration') {
             steps {
-                sh 'mvn integration-test -DskipUnitTests'
+                sh 'mvn verify -DskipUnitTests'
             }
         }
 
@@ -46,27 +47,28 @@ pipeline {
                 sh 'mvn dependency:copy-dependencies -DoutputDirectory=target/lib'
             }
         }
-        stage('Building images') {
+
+        stage('Build Docker Image') {
             steps {
                 script {
-                    def imageTag = "v1.${BUILD_NUMBER}"
-                    withEnv(["IMAGE_TAG=${imageTag}"]) {
+                    def tag = "v1.${env.BUILD_NUMBER}"
+                    env.IMAGE_TAG = tag
+                    withEnv(["IMAGE_TAG=${tag}"]) {
                         sh 'docker-compose build'
                     }
-                    // Optional: tag latest
-                    sh "docker tag nihedxtn/gestion-pist:${imageTag} nihedxtn/gestion-pist:latest"
-                }   
+                    sh "docker tag ${DOCKER_REPO}:${tag} ${DOCKER_REPO}:latest"
+                }
             }
         }
 
         stage('Push Docker Image') {
             steps {
                 script {
-                    def imageTag = "v1.${BUILD_NUMBER}"
+                    def tag = env.IMAGE_TAG
                     withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
                         sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u nihedxtn --password-stdin"
-                        sh "docker push nihedxtn/gestion-pist:${imageTag}"
-                        sh "docker push nihedxtn/gestion-pist:latest"
+                        sh "docker push ${DOCKER_REPO}:${tag}"
+                        sh "docker push ${DOCKER_REPO}:latest"
                     }
                 }
             }
@@ -77,7 +79,7 @@ pipeline {
                 script {
                     def scannerHome = tool 'scanner'
                     withSonarQubeEnv('scanner') {
-                        sh "${scannerHome}/bin/sonar-scanner"
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=gestion-pist -Dsonar.sources=src"
                     }
                 }
             }
@@ -94,13 +96,13 @@ pipeline {
 
     post {
         success {
-            echo 'Build et verification réussis!'
+            echo '✅ Build and quality checks succeeded!'
         }
         failure {
-            echo 'La pipeline a échoué.'
+            echo '❌ Build failed. Check logs above.'
         }
         always {
-            echo 'Build completed'
+            echo '🔁 Pipeline execution completed.'
         }
     }
 }

@@ -2,11 +2,9 @@ package tn.esprit.spring.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import tn.esprit.spring.entities.Color;
 import tn.esprit.spring.entities.Piste;
@@ -22,14 +20,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 @ActiveProfiles("test")
 public class PisteServicesImplTest {
 
-    @Mock
+    @MockBean
     private IPisteRepository pisteRepository;
 
-    @InjectMocks
+    @SpyBean
     private PisteServicesImpl pisteServices;
 
     private Piste piste1;

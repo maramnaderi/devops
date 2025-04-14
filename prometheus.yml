@@ -23,6 +23,11 @@ scrape_configs:
     static_configs:
       - targets: ["spring-backend:8082"]
 
+  - job_name: "sonarqube"
+    metrics_path: "/api/monitoring/metrics"
+    static_configs:
+      - targets: ["sonarqube:9000"]
+
   - job_name: "jenkins"
     metrics_path: "/prometheus"
     static_configs:

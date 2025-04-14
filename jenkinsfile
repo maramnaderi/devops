@@ -6,13 +6,13 @@ pipeline {
         jdk 'JAVA_HOME'
     }
 
-    environment {
+   environment {
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        registry = '192.168.33.10:8085' // Nexus hosted registry port
-        registryCredentials = 'nexus'  // Jenkins credential ID (username/password or token)
+        registry = 'localhost:8085' // fixed from 192.168.33.10:8083
+        registryCredentials = 'nexus'
         DOCKER_REPO = "${registry}/gestion-pist"
-    }
+                }
 
     stages {
         stage('Cloner le dépôt') {

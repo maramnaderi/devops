@@ -11,33 +11,30 @@ import org.springframework.context.annotation.Configuration;
 public class OpenAPIConfig {
 
     @Bean
-    public OpenAPI springShopOpenAPI() {
-        return new OpenAPI()
-                .info(infoAPI());
-
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI().info(apiInfo());
     }
 
-    public Info infoAPI() {
-        return new Info().title("\uD83C\uDFBF SKI STATION MANAGEMENT \uD83D\uDEA0")
-                .description("Case Study - SKI STATION")
-                .contact(contactAPI());
+    private Info apiInfo() {
+        return new Info()
+                .title("🎿 SKI STATION MANAGEMENT 🚠")
+                .description("📘 Case Study - SKI STATION Project")
+                .version("1.0.0")
+                .contact(apiContact());
     }
 
-    public Contact contactAPI() {
-        return new Contact().name("TEAM ASI II")
+    private Contact apiContact() {
+        return new Contact()
+                .name("TEAM ASI II")
                 .email("ons.bensalah@esprit.tn")
                 .url("https://www.linkedin.com/in/ons-ben-salah-24b73494/");
     }
 
-
     @Bean
-    public GroupedOpenApi productPublicApi() {
+    public GroupedOpenApi skiStationApiGroup() {
         return GroupedOpenApi.builder()
-                .group("SKI STATION Management API")
-                .pathsToMatch("/**/**")
-                .pathsToExclude("**")
+                .group("SKI STATION API")
+                .pathsToMatch("/**")
                 .build();
     }
-
-
 }

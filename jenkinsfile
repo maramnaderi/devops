@@ -183,22 +183,6 @@ pipeline {
 
 
 
-           stage('Monitoring avec Prometheus & Grafana') {
-            steps {
-                script {
-                    try {
-                        echo "📈 Déploiement de Prometheus et Grafana..."
-                        sh '''
-                          docker-compose up -d prometheus grafana
-                        '''
-                    } catch (Exception e) {
-                        echo "❌ Erreur déploiement Prometheus/Grafana : ${e}"
-                        error "Échec déploiement monitoring"
-                    }
-                }
-            }
-        }
-
 
 
     }

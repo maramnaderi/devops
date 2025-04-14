@@ -1,19 +1,20 @@
 package tn.esprit.spring;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-
 import tn.esprit.spring.entities.Course;
+import tn.esprit.spring.entities.Support;
+import tn.esprit.spring.entities.TypeCourse;
 import tn.esprit.spring.repositories.ICourseRepository;
 import tn.esprit.spring.services.CourseServicesImpl;
 
-class CourseServicesImplTest {
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+public class CourseServicesImplTest {
 
     @InjectMocks
     private CourseServicesImpl courseServices;
@@ -22,60 +23,84 @@ class CourseServicesImplTest {
     private ICourseRepository courseRepository;
 
     @BeforeEach
-    void setUp() {
+    void init() {
         MockitoAnnotations.openMocks(this);
     }
 
+    // 1. Test retrieveAllCourses()
+    @Test
+    void testRetrieveAllCourses() {
+        List<Course> mockCourses = Arrays.asList(new Course(), new Course());
+        when(courseRepository.findAll()).thenReturn(mockCourses);
+
+        List<Course> result = courseServices.retrieveAllCourses();
+
+        assertEquals(2, result.size());
+        verify(courseRepository, times(1)).findAll();
+    }
+
+    // 2. Test addCourse()
     @Test
     void testAddCourse() {
         Course course = new Course();
-        course.setPrice(100.0f);
-        when(courseRepository.save(course)).thenReturn(course);
-        Course result = courseServices.addCourse(course);
-        assertEquals(100.0f, result.getPrice());
+        course.setLevel(1);
+        course.setSupport(Support.SKI);
+        course.setTypeCourse(TypeCourse.INDIVIDUAL);
+        course.setPrice(120f);
+        course.setTimeSlot(2);
+
+        when(courseRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        Course saved = courseServices.addCourse(course);
+
+        assertNotNull(saved);
+        assertEquals(1, saved.getLevel());
+        assertEquals(Support.SKI, saved.getSupport());
+        assertEquals(TypeCourse.INDIVIDUAL, saved.getTypeCourse());
+        assertEquals(120f, saved.getPrice());
+        assertEquals(2, saved.getTimeSlot());
     }
 
+    // 3. Test updateCourse()
     @Test
     void testUpdateCourse() {
         Course course = new Course();
         course.setNumCourse(1L);
-        course.setLevel(3);
+        course.setLevel(2);
 
-        when(courseRepository.save(course)).thenReturn(course);
+        when(courseRepository.save(any())).thenReturn(course);
 
         Course updated = courseServices.updateCourse(course);
-        assertEquals(3, updated.getLevel());
+
+        assertNotNull(updated);
+        assertEquals(1L, updated.getNumCourse());
+        assertEquals(2, updated.getLevel());
+        verify(courseRepository).save(course);
     }
 
+    // 4. Test retrieveCourse() - existing
     @Test
-    void testRetrieveAllCourses() {
-        Course c1 = new Course();
-        Course c2 = new Course();
-
-        when(courseRepository.findAll()).thenReturn(Arrays.asList(c1, c2));
-
-        List<Course> list = courseServices.retrieveAllCourses();
-        assertEquals(2, list.size());
-    }
-
-    @Test
-    void testRetrieveCourse() {
+    void testRetrieveCourseExists() {
         Course course = new Course();
         course.setNumCourse(10L);
-        course.setLevel(2);
+        course.setLevel(3);
 
         when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
 
         Course found = courseServices.retrieveCourse(10L);
+
         assertNotNull(found);
-        assertEquals(2, found.getLevel());
+        assertEquals(10L, found.getNumCourse());
+        assertEquals(3, found.getLevel());
     }
 
+    // 5. Test retrieveCourse() - not found
     @Test
-    void testRetrieveCourse_NotFound() {
+    void testRetrieveCourseNotFound() {
         when(courseRepository.findById(99L)).thenReturn(Optional.empty());
 
         Course found = courseServices.retrieveCourse(99L);
+
         assertNull(found);
     }
 }

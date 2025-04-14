@@ -17,16 +17,20 @@ public class CourseRestController {
     
     private final ICourseServices courseServices;
 
-    @Operation(description = "Add Course")
+  @Operation(description = "Add Course")
     @PostMapping("/add")
-    public Course addCourse(@RequestBody Course course){
-        return  courseServices.addCourse(course);
+    public ResponseEntity<Course> addCourse(@RequestBody Course course) {
+    
+        Course created = courseServices.addCourse(course);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @Operation(description = "Retrieve all Courses")
     @GetMapping("/all")
-    public List<Course> getAllCourses(){
-        return courseServices.retrieveAllCourses();
+    public ResponseEntity<List<Course>> getAllCourses() {
+     
+        List<Course> courses = courseServices.retrieveAllCourses();
+        return ResponseEntity.ok(courses);
     }
 
     @Operation(description = "Update Course ")

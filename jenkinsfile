@@ -9,7 +9,9 @@ pipeline {
     environment {
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        DOCKER_REPO = 'nihedxtn/gestion-pist'
+        registry = '192.168.33.10:8083'
+        registryCredentials = 'nexus'
+        DOCKER_REPO = "${registry}/gestion-pist"
     }
 
     stages {
@@ -52,56 +54,44 @@ pipeline {
             steps {
                 script {
                     def imageTag = "v1.${BUILD_NUMBER}"
-                    def baseImage = "nihedxtn/gestion-pist"
-                    def fullImage = "${baseImage}:${imageTag}"
+                    def fullImage = "${DOCKER_REPO}:${imageTag}"
+                    def latestImage = "${DOCKER_REPO}:latest"
 
-                    // Build with Docker Compose (which creates :latest)
+                    // Build with Docker Compose (spring-backend defined in docker-compose.yml)
                     sh 'docker-compose build spring-backend'
 
-                    // Debug output
-                    sh 'docker images'
-
-                    // Make sure latest exists before tagging
-                    def exists = sh(script: "docker images -q ${baseImage}:latest", returnStdout: true).trim()
+                    // Verify image exists
+                    def exists = sh(script: "docker images -q ${DOCKER_REPO}:latest", returnStdout: true).trim()
                     if (!exists) {
-                        error "❌ Image ${baseImage}:latest not found after build!"
+                        error "❌ Image ${DOCKER_REPO}:latest not found after build!"
                     }
 
-                    // Tag for version
-                    sh "docker tag ${baseImage}:latest ${fullImage}"
+                    // Tag with version
+                    sh "docker tag ${DOCKER_REPO}:latest ${fullImage}"
                 }
             }
         }
 
-
-        stage('Push Docker Image') {
+        stage('Deploy to Nexus') {
             steps {
                 script {
                     def imageTag = "v1.${BUILD_NUMBER}"
-                    def baseImage = "nihedxtn/gestion-pist"
-                    def fullImage = "${baseImage}:${imageTag}"
+                    def fullImage = "${DOCKER_REPO}:${imageTag}"
+                    def latestImage = "${DOCKER_REPO}:latest"
 
-            withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
-                sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u nihedxtn --password-stdin"
-
-                // Double check image exists before pushing
-                def exists = sh(script: "docker images -q ${fullImage}", returnStdout: true).trim()
-                if (!exists) {
-                    error "❌ Image ${fullImage} not found. Tag failed?"
-                }
-
-                sh "docker push ${fullImage}"
-                sh "docker push ${baseImage}:latest"
+                    docker.withRegistry("http://${registry}", registryCredentials) {
+                        sh "docker push ${fullImage}"
+                        sh "docker push ${latestImage}"
                     }
                 }
             }
         }
 
         stage('Debug Images') {
-    steps {
-        sh 'docker images'
-    }
-}
+            steps {
+                sh 'docker images'
+            }
+        }
 
         stage('SonarQube Analysis') {
             steps {
@@ -125,13 +115,13 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build and quality checks succeeded!'
+            echo '✅ Build and quality checks succeeded and pushed to Nexus!'
         }
         failure {
-            echo '❌ Build failed. Check logs above.'
+            echo '❌ Pipeline failed. Check errors above.'
         }
         always {
-            echo '🔁 Pipeline execution completed.'
+            echo '🔁 Pipeline finished running.'
         }
     }
 }

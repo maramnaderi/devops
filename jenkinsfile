@@ -49,27 +49,25 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-        steps {
-            script {
-                def imageTag = "v1.${BUILD_NUMBER}"
-                def fullImage = "nihedxtn/gestion-pist:${imageTag}"
-                def latestImage = "nihedxtn/gestion-pist:latest"
-                
-                withEnv(["IMAGE_TAG=${imageTag}"]) {
-                    sh 'docker-compose build spring-backend'
-                }
+            steps {
+                script {
+                    def imageTag = "v1.${BUILD_NUMBER}"
+                    def fullImage = "nihedxtn/gestion-pist:${imageTag}"
+                    def latestImage = "nihedxtn/gestion-pist:latest"
 
-                // Tag the image correctly for Docker Hub
-                sh "docker tag nihedxtn/gestion-pist:${imageTag} ${fullImage}"
-                sh "docker tag nihedxtn/gestion-pist:${imageTag} ${latestImage}"
+                    // Build with the correct tag directly
+                    sh "docker build -t ${fullImage} -t ${latestImage} ."
+                }
             }
         }
-         }
+
 
         stage('Push Docker Image') {
             steps {
                 script {
                     def imageTag = "v1.${BUILD_NUMBER}"
+                    sh "docker images" // for debug visibility
+
                     withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
                         sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u nihedxtn --password-stdin"
                         sh "docker push nihedxtn/gestion-pist:${imageTag}"
@@ -78,6 +76,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('SonarQube Analysis') {
             steps {

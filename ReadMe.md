@@ -1,2 +1,2 @@
 #Gestion des Pistes
-pass SonarQube : Niheddouz2002@@
+pass SonarQube : Nihed..douz2002

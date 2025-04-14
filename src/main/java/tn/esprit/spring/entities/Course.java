@@ -35,13 +35,4 @@ public class Course implements Serializable {
 	@OneToMany(mappedBy= "course")
 	Set<Registration> registrations;
 
-
-	public Course(long l, int i, TypeCourse typeCourse, Support support, float v, int i1) {
-		this.numCourse = l;
-		this.level = i;
-		this.typeCourse = typeCourse;
-		this.support = support;
-		this.price = v;
-		this.timeSlot = i1;
-	}
 }

@@ -14,6 +14,7 @@ C:\Users\LOQ\Downloads\devops-Fadi\devops-Fadi\src\main\java\tn\esprit\spring\co
 C:\Users\LOQ\Downloads\devops-Fadi\devops-Fadi\src\main\java\tn\esprit\spring\services\InstructorServicesImpl.java
 C:\Users\LOQ\Downloads\devops-Fadi\devops-Fadi\src\main\java\tn\esprit\spring\entities\Instructor.java
 C:\Users\LOQ\Downloads\devops-Fadi\devops-Fadi\src\main\java\tn\esprit\spring\repositories\IRegistrationRepository.java
+C:\Users\LOQ\Downloads\devops-Fadi\devops-Fadi\src\main\java\tn\esprit\spring\dto\CourseDTO.java
 C:\Users\LOQ\Downloads\devops-Fadi\devops-Fadi\src\main\java\tn\esprit\spring\services\CourseServicesImpl.java
 C:\Users\LOQ\Downloads\devops-Fadi\devops-Fadi\src\main\java\tn\esprit\spring\entities\Course.java
 C:\Users\LOQ\Downloads\devops-Fadi\devops-Fadi\src\main\java\tn\esprit\spring\entities\TypeSubscription.java

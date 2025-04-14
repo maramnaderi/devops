@@ -1,111 +1,81 @@
 package tn.esprit.spring;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import tn.esprit.spring.controllers.CourseRestController;
-import tn.esprit.spring.dto.CourseDTO;
+import org.mockito.*;
+
 import tn.esprit.spring.entities.Course;
-import tn.esprit.spring.entities.TypeCourse;
-import tn.esprit.spring.entities.Support;
-import tn.esprit.spring.services.ICourseServices;
+import tn.esprit.spring.repositories.ICourseRepository;
+import tn.esprit.spring.services.CourseServicesImpl;
 
-import java.util.List;
-
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@WebMvcTest(CourseRestController.class)
-public class CourseServicesImplTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Mock
-    private ICourseServices courseServices;
+class CourseServicesImplTest {
 
     @InjectMocks
-    private CourseRestController courseRestController;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    private CourseServicesImpl courseServices;
 
     @Mock
-    private TypeCourse typeCourse;  // Mock TypeCourse
-
-    @Mock
-    private Support support;  // Mock Support
+    private ICourseRepository courseRepository;
 
     @BeforeEach
-    public void setup() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testAddCourse() throws Exception {
-        // Arrange
-        CourseDTO courseDTO = new CourseDTO(1L, 1, null, null, 100.0f, 10);
-        Course course = new Course(1L, 1, typeCourse, support, 100.0f, 10);
-
-        when(courseServices.addCourse(any(Course.class))).thenReturn(course);
-
-        // Act & Assert
-        mockMvc.perform(post("/course/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(courseDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.numCourse").value(1))
-                .andExpect(jsonPath("$.level").value(1));
+    void testAddCourse() {
+        Course course = new Course();
+        course.setPrice(100.0f);
+        when(courseRepository.save(course)).thenReturn(course);
+        Course result = courseServices.addCourse(course);
+        assertEquals(100.0f, result.getPrice());
     }
 
     @Test
-    public void testGetAllCourses() throws Exception {
-        // Arrange
-        CourseDTO courseDTO = new CourseDTO(1L, 1, null, null, 100.0f, 10);
-        when(courseServices.retrieveAllCourses()).thenReturn(List.of(new Course(1L, 1, typeCourse, support, 100.0f, 10)));
+    void testUpdateCourse() {
+        Course course = new Course();
+        course.setNumCourse(1L);
+        course.setLevel(3);
 
-        // Act & Assert
-        mockMvc.perform(get("/course/all"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].numCourse").value(1))
-                .andExpect(jsonPath("$[0].level").value(1));
+        when(courseRepository.save(course)).thenReturn(course);
+
+        Course updated = courseServices.updateCourse(course);
+        assertEquals(3, updated.getLevel());
     }
 
     @Test
-    public void testUpdateCourse() throws Exception {
-        // Arrange
-        CourseDTO courseDTO = new CourseDTO(1L, 1, null, null, 200.0f, 15);
-        Course updatedCourse = new Course(1L, 1, typeCourse, support, 200.0f, 15);
+    void testRetrieveAllCourses() {
+        Course c1 = new Course();
+        Course c2 = new Course();
 
-        when(courseServices.updateCourse(any(Course.class))).thenReturn(updatedCourse);
+        when(courseRepository.findAll()).thenReturn(Arrays.asList(c1, c2));
 
-        // Act & Assert
-        mockMvc.perform(put("/course/update")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(courseDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.numCourse").value(1))
-                .andExpect(jsonPath("$.price").value(200.0f));
+        List<Course> list = courseServices.retrieveAllCourses();
+        assertEquals(2, list.size());
     }
 
     @Test
-    public void testGetById() throws Exception {
-        // Arrange
-        CourseDTO courseDTO = new CourseDTO(1L, 1, null, null, 100.0f, 10);
-        when(courseServices.retrieveCourse(1L)).thenReturn(new Course(1L, 1, typeCourse, support, 100.0f, 10));
+    void testRetrieveCourse() {
+        Course course = new Course();
+        course.setNumCourse(10L);
+        course.setLevel(2);
 
-        // Act & Assert
-        mockMvc.perform(get("/course/get/1-course"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.numCourse").value(1))
-                .andExpect(jsonPath("$.level").value(1));
+        when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
+
+        Course found = courseServices.retrieveCourse(10L);
+        assertNotNull(found);
+        assertEquals(2, found.getLevel());
+    }
+
+    @Test
+    void testRetrieveCourse_NotFound() {
+        when(courseRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Course found = courseServices.retrieveCourse(99L);
+        assertNull(found);
     }
 }

@@ -54,8 +54,8 @@ pipeline {
                         sh 'docker-compose build'
                     }
                     // Optional: tag latest
-                    sh "docker tag nihed/gestion-pist:${imageTag} nihed/gestion-pist:latest"
-                }
+                    sh "docker tag nihedxtn/gestion-pist:${imageTag} nihedxtn/gestion-pist:latest"
+                }   
             }
         }
 
@@ -65,8 +65,8 @@ pipeline {
                     def imageTag = "v1.${BUILD_NUMBER}"
                     withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
                         sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u nihed --password-stdin"
-                        sh "docker push nihed/gestion-pist:${imageTag}"
-                        sh "docker push nihed/gestion-pist:latest"
+                        sh "docker push nihedxtn/gestion-pist:${imageTag}"
+                        sh "docker push nihedxtn/gestion-pist:latest"
                     }
                 }
             }

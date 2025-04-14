@@ -8,7 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: stationSki
     ports:
-      - "3307:3306"  # Host uses 3307, internal stays 3306
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -19,8 +19,8 @@ services:
     image: sonatype/nexus3
     container_name: nexus-server
     ports:
-      - "8083:8081"  # Host 8083 -> Container 8081
-      - "8084:8083"  # Optional second port
+      - "8083:8081"  # UI access: http://localhost:8083
+      - "8085:8085"  # Hosted Docker registry (make sure it's configured in Nexus UI)
     volumes:
       - nexus-data:/nexus-data
     networks:
@@ -45,14 +45,14 @@ services:
     container_name: sonar
     ports:
       - "9000:9000"
-    networks:
-      - app-network
     environment:
-      - SONAR_JDBC_USERNAME=sonar
-      - SONAR_JDBC_PASSWORD=sonar
-      - SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
     depends_on:
       - db
+    networks:
+      - app-network
     restart: always
 
   spring-backend:
@@ -67,17 +67,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/stationSki?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-
-      # JPA Config
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL5InnoDBDialect
       SPRING_JPA_SHOW_SQL: "true"
       SPRING_JPA_OPEN_IN_VIEW: "false"
-
-      # Server Config
       SERVER_PORT: 8082
       TZ: Africa/Tunis
-
     ports:
       - "8082:8082"
     networks:

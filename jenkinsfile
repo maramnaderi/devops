@@ -9,8 +9,8 @@ pipeline {
     environment {
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        registry = '192.168.33.10:8083'
-        registryCredentials = 'nexus'
+        registry = '192.168.33.10:8083' // Nexus hosted registry port
+        registryCredentials = 'nexus'  // Jenkins credential ID (username/password or token)
         DOCKER_REPO = "${registry}/gestion-pist"
     }
 
@@ -57,17 +57,25 @@ pipeline {
                     def fullImage = "${DOCKER_REPO}:${imageTag}"
                     def latestImage = "${DOCKER_REPO}:latest"
 
-                    // Build with Docker Compose (spring-backend defined in docker-compose.yml)
+                    // Build using docker-compose
                     sh 'docker-compose build spring-backend'
 
-                    // Verify image exists
-                    def exists = sh(script: "docker images -q ${DOCKER_REPO}:latest", returnStdout: true).trim()
+                    // Ensure image was built correctly
+                    def exists = sh(script: "docker images -q ${DOCKER_REPO}:latest || true", returnStdout: true).trim()
                     if (!exists) {
-                        error "❌ Image ${DOCKER_REPO}:latest not found after build!"
+                        // Check for localhost fallback if built as localhost
+                        exists = sh(script: "docker images -q localhost:8085/gestion-pist:latest || true", returnStdout: true).trim()
+                        if (exists) {
+                            echo "⚠️ Image was built as localhost:8085/gestion-pist instead. Retagging..."
+                            sh "docker tag localhost:8085/gestion-pist:latest ${DOCKER_REPO}:latest"
+                            sh "docker tag localhost:8085/gestion-pist:latest ${DOCKER_REPO}:${imageTag}"
+                        } else {
+                            error "❌ Docker image not found after build!"
+                        }
+                    } else {
+                        // Tag version
+                        sh "docker tag ${DOCKER_REPO}:latest ${fullImage}"
                     }
-
-                    // Tag with version
-                    sh "docker tag ${DOCKER_REPO}:latest ${fullImage}"
                 }
             }
         }
@@ -115,13 +123,13 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build and quality checks succeeded and pushed to Nexus!'
+            echo '✅ Build and Nexus deployment succeeded!'
         }
         failure {
-            echo '❌ Pipeline failed. Check errors above.'
+            echo '❌ Build failed. Please check logs.'
         }
         always {
-            echo '🔁 Pipeline finished running.'
+            echo '🔁 Pipeline execution completed.'
         }
     }
 }

@@ -19,10 +19,19 @@ public class CourseRestController {
     
     private final ICourseServices courseServices;
 
-  @Operation(description = "Add Course")
+ @Operation(description = "Add Course")
     @PostMapping("/add")
-    public ResponseEntity<Course> addCourse(@RequestBody Course course) {
-    
+    public ResponseEntity<Course> addCourse(@RequestBody Map<String, Object> courseRequest) {
+        // Récupérer les informations du POJO directement à partir du Map
+        String name = (String) courseRequest.get("name");
+        Integer level = (Integer) courseRequest.get("level");
+
+        // Créer l'entité Course à partir des informations récupérées
+        Course course = new Course();
+        course.setName(name);
+        course.setLevel(level);
+
+        // Appeler le service pour ajouter le cours
         Course created = courseServices.addCourse(course);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }

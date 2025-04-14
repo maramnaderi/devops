@@ -128,7 +128,7 @@ pipeline {
                 }
             }
         }
-
+       
         stage('Connexion à DockerHub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
@@ -150,6 +150,7 @@ pipeline {
                 }
             }
         }
+
 
        stage('Déploiement avec Docker Compose') {
     steps {
@@ -181,6 +182,22 @@ pipeline {
     }
 }
 
+stage('Déploiement avec Docker Compose') {
+    steps {
+        script {
+            try {
+                sh '''
+docker-compose down -v --remove-orphans
+# docker-compose pull  <-- désactivé temporairement
+docker-compose up -d --build --force-recreate
+'''
+            } catch (Exception e) {
+                echo "Erreur lors du déploiement Docker Compose : ${e}"
+                error "Échec dans le déploiement avec Docker Compose"
+            }
+        }
+    }
+}
 
 
 

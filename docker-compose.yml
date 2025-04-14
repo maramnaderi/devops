@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: marwaniwael/gestion-ski:${IMAGE_TAG:-latest}
+    image: Nihed/gestion-pist:${IMAGE_TAG:-latest}
     container_name: spring_backend
     depends_on:
       - mysql

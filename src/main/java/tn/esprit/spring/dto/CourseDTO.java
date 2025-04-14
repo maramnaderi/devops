@@ -1,4 +1,4 @@
-package tn.esprit.spring.DTO;
+package tn.esprit.spring.dto;
 import lombok.Data;
 import tn.esprit.spring.entities.Support;
 import tn.esprit.spring.entities.TypeCourse;

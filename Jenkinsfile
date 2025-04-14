@@ -161,8 +161,8 @@ sh '''
 post {
         always {
             emailext(
-                from: 'hlelikhairi04@gmail.com',
-                to: 'khairidinne.hleli@esprit.tn',
+                from: 'haythemraggad1920@gmail.com',
+                to: 'haythem.raggad@esprit.tn',
                 subject: "Pipeline ${currentBuild.fullDisplayName} - Statut: ${currentBuild.currentResult}",
                 body: """
                 Statut du build : ${currentBuild.currentResult}
@@ -176,8 +176,8 @@ post {
 
         failure {
             emailext(
-                from: 'hlelikhairi04@gmail.com',
-                to: 'khairidinne.hleli@esprit.tn',
+                from: 'haythemraggad1920@gmail.com',
+                to: 'haythem.raggad@esprit.tn',
                 subject: "❌ Échec du Pipeline ${currentBuild.fullDisplayName}",
                 body: """
                 Le pipeline a échoué à l'étape : ${currentBuild.fullDisplayName}.
@@ -189,8 +189,8 @@ post {
 
         success {
             emailext(
-                from: 'hlelikhairi04@gmail.com',
-                to: 'khairidinne.hleli@esprit.tn',
+                from: 'haythemraggad1920@gmail.com',
+                to: 'haythem.raggad@esprit.tn',
                 subject: "✅ Succès du Pipeline ${currentBuild.fullDisplayName}",
                 body: """
                 Le pipeline s'est terminé avec succès.

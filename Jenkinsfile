@@ -142,10 +142,12 @@ stage('Déploiement avec Docker Compose') {
     steps {
         script {
             try {
-                sh '''
-                    docker-compose pull
-                    docker-compose up -d
-                '''
+sh '''
+    docker-compose down -v --remove-orphans
+    docker-compose pull
+    docker-compose up -d --force-recreate
+'''
+
             } catch (Exception e) {
                 echo "Erreur lors du déploiement Docker Compose : ${e}"
                 error "Échec dans le déploiement avec Docker Compose"

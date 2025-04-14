@@ -10,6 +10,7 @@ import tn.esprit.spring.repositories.ISkierRepository;
 import tn.esprit.spring.repositories.ISubscriptionRepository;
 import tn.esprit.spring.services.SubscriptionServicesImpl;
 
+import java.time.LocalDate; // Import manquant
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;

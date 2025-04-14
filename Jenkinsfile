@@ -143,8 +143,9 @@ stage('Déploiement avec Docker Compose') {
         script {
             try {
 sh '''
-docker-compose up -d --build
-
+  docker-compose down -v --remove-orphans
+  docker-compose pull
+  docker-compose up -d --build --force-recreate
 '''
 
             } catch (Exception e) {

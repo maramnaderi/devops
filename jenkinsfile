@@ -151,31 +151,23 @@ pipeline {
             }
         }
 
-       stage('Déploiement avec Docker Compose') {
-    steps {
-        script {
-            try {
-                sh '''
-                    echo "🔻 Arrêt et nettoyage des containers..."
-                    docker-compose down -v --remove-orphans
-                    
-                    echo "⬇️ Pull des images..."
-                    docker-compose pull
-                    
-                    echo "🚀 Démarrage des services avec build..."
-                    docker-compose up -d --build --force-recreate
-                    
-                    echo "✅ Tous les services Docker sont lancés."
-                    docker-compose ps
-                '''
-            } catch (Exception e) {
-                echo "❌ Erreur lors du déploiement Docker Compose : ${e}"
-                sh 'docker-compose logs'
-                error "Échec dans le déploiement avec Docker Compose"
-            }
-        }
-    }
-}
+       sh '''
+    echo "🧹 Suppression des anciens conteneurs conflictuels..."
+    docker rm -f grafana prometheus || true
+
+    echo "🔻 Arrêt et nettoyage des containers..."
+    docker-compose down -v --remove-orphans
+
+    echo "⬇️ Pull des images..."
+    docker-compose pull
+
+    echo "🚀 Démarrage des services avec build..."
+    docker-compose up -d --build --force-recreate
+
+    echo "✅ Tous les services Docker sont lancés."
+    docker-compose ps
+'''
+
 
            stage('Monitoring avec Prometheus & Grafana') {
             steps {

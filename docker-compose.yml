@@ -1,92 +1,71 @@
 version: '3.8'
 
 services:
-  mysql:
+  mysql-db:
     image: mysql:5.7
-    container_name: mysql
+    container_name: mysql-db
     environment:
-      MYSQL_ROOT_PASSWORD:
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: stationSki
     ports:
-      - "3306:3306"
+      - "3307:3306"  # Host uses 3307, internal stays 3306
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - app-network
-    ports:
-      - "3307:3306"
+    restart: always
 
   nexus:
     image: sonatype/nexus3
-    container_name: nexus
+    container_name: nexus-server
     ports:
-      - "8081:8081"
-      - "8083:8083"
+      - "8083:8081"  # Host 8083 -> Container 8081
+      - "8084:8083"  # Optional second port
     volumes:
       - nexus-data:/nexus-data
     networks:
       - app-network
     restart: always
 
-  spring_app:
+  spring-backend:
     build:
       context: .
       dockerfile: Dockerfile
-    image: Nihed/gestion-pist:${IMAGE_TAG:-latest}
-    container_name: spring_backend
+    image: nihed/gestion-pist:latest
+    container_name: spring-backend
     depends_on:
-      - mysql
+      - mysql-db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/stationSki?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/stationSki?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD:
+      SPRING_DATASOURCE_PASSWORD: root
 
-      # JPA Configuration
+      # JPA Config
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL5InnoDBDialect
       SPRING_JPA_SHOW_SQL: "true"
       SPRING_JPA_OPEN_IN_VIEW: "false"
 
-      # Server Configuration
-      SERVER_PORT: 8081
-
-      # Logging Configuration
-      LOGGING_LEVEL_ROOT: info
-      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: DEBUG
-      LOGGING_LEVEL_TN_ESPRIT_SPRING: DEBUG
-      LOGGING_PATTERN_CONSOLE: "%d{yyyy-MM-dd HH:mm:ss} - %-5level - %logger{45} - %msg %n"
-
-      # Time Zone
+      # Server Config
+      SERVER_PORT: 8082
       TZ: Africa/Tunis
 
-      # Piste Management Focus
-      APP_COMPONENT: piste-management
-      PISTE_SERVICE_ENABLED: "true"
-      PISTE_DEFAULT_COLOR: "RED"
-      PISTE_SERVICE_LOGGING: "DEBUG"
-      PISTE_API_PATH: "/api/pistes"
-
-      # Swagger documentation
-      SPRINGDOC_SWAGGER_UI_PATH: "/swagger-ui.html"
-      SPRINGDOC_API_DOCS_PATH: "/v3/api-docs"
-      SPRINGDOC_PACKAGES_TO_SCAN: "tn.esprit.spring.controllers"
-      SPRINGDOC_PATHS_TO_MATCH: "/piste/**"
-      SPRINGDOC_SWAGGER_UI_OPERATIONS_SORTER: "method"
     ports:
-      - "8081:8081"
+      - "8082:8082"
+    networks:
+      - app-network
+    restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/api/pistes || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/pistes"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    restart: always
-    networks:
-      - app-network
 
 volumes:
   mysql_data:
   nexus-data:
+  sonar_db_data:
 
 networks:
   app-network:

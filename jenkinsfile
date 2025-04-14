@@ -6,7 +6,7 @@ pipeline {
         jdk 'JAVA_HOME'
     }
 
-   environment {
+    environment {
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
         registry = '172.17.0.1:8085'
@@ -15,7 +15,7 @@ pipeline {
     }
 
     stages {
-        stage('Cloner le dépôt') {
+        stage('Clone Repository') {
             steps {
                 git branch: 'Nihed-PistManagment', url: 'https://github.com/maramnaderi/devops.git'
             }
@@ -27,7 +27,7 @@ pipeline {
             }
         }
 
-        stage('Tests unitaires') {
+        stage('Unit Tests') {
             steps {
                 sh 'mvn test -Dspring.profiles.active=test'
             }
@@ -38,7 +38,7 @@ pipeline {
             }
         }
 
-        stage('Tests d\'intégration') {
+        stage('Integration Tests') {
             steps {
                 sh 'mvn verify -DskipUnitTests'
             }
@@ -48,17 +48,23 @@ pipeline {
             steps {
                 sh 'mvn jacoco:report'
                 sh 'mkdir -p target/site/jacoco'
-                // Archive the JaCoCo report so it can be accessed through Jenkins UI
                 archiveArtifacts artifacts: 'target/site/jacoco/**', allowEmptyArchive: true
-                echo 'JaCoCo coverage report available in the build artifacts'
-                publishHTML target: [
-                    allowMissing: true,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'target/site/jacoco',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo Report'
-                ]
+                echo '📊 JaCoCo coverage report archived.'
+
+                script {
+                    try {
+                        publishHTML target: [
+                            allowMissing: true,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'target/site/jacoco',
+                            reportFiles: 'index.html',
+                            reportName: 'JaCoCo Report'
+                        ]
+                    } catch (err) {
+                        echo "⚠️ HTML Publisher plugin not available: ${err.message}"
+                    }
+                }
             }
         }
 
@@ -76,38 +82,28 @@ pipeline {
                     def nexusLatest = "${DOCKER_REPO}:latest"
                     def localImage = "localhost:8085/gestion-pist:latest"
 
-                    // Build
-                    sh 'docker-compose build spring-backend'
+                    // Build using docker-compose
+                    sh '''
+                        if [ ! -w /var/run/docker.sock ]; then
+                            echo "❌ No Docker permission. Add user to docker group or fix /var/run/docker.sock permissions."
+                            exit 1
+                        fi
+                        docker-compose build spring-backend
+                    '''
 
-                    // Make sure the local image exists
                     def exists = sh(script: "docker images -q ${localImage}", returnStdout: true).trim()
                     if (!exists) {
                         error "❌ Image ${localImage} not found after build!"
                     }
 
-                    // Tag it properly for Nexus registry
+                    // Tag image
                     sh "docker tag ${localImage} ${nexusImage}"
                     sh "docker tag ${localImage} ${nexusLatest}"
                 }
             }
         }
 
-        // stage('Deploy to Nexus') {
-        //     steps {
-        //         script {
-        //             def imageTag = "v1.${BUILD_NUMBER}"
-        //             def fullImage = "${DOCKER_REPO}:${imageTag}"
-        //             def latestImage = "${DOCKER_REPO}:latest"
-
-        //             docker.withRegistry("http://${registry}", registryCredentials) {
-        //                 sh "docker push ${fullImage}"
-        //                 sh "docker push ${latestImage}"
-        //             }
-        //         }
-        //     }
-        // }
-
-        stage('Debug Images') {
+        stage('Debug Docker Images') {
             steps {
                 sh 'docker images'
             }
@@ -118,11 +114,11 @@ pipeline {
                 script {
                     def scannerHome = tool 'scanner'
                     withSonarQubeEnv('scanner') {
-                        sh "${scannerHome}/bin/sonar-scanner \
-                           -Dsonar.projectKey=gestion-pist \
-                           -Dsonar.host.url=http://sonar:9000 \
-                           -Dsonar.sources=src \
-                           -Dsonar.java.binaries=target/classes"
+                        sh "${scannerHome}/bin/sonar-scanner " +
+                           "-Dsonar.projectKey=gestion-pist " +
+                           "-Dsonar.host.url=http://sonar:9000 " +
+                           "-Dsonar.sources=src " +
+                           "-Dsonar.java.binaries=target/classes"
                     }
                 }
             }
@@ -139,13 +135,13 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build and Nexus deployment succeeded!'
+            echo '✅ All stages passed. Deployment ready!'
         }
         failure {
-            echo '❌ Build failed. Please check logs.'
+            echo '❌ Pipeline failed. Check logs for details.'
         }
         always {
-            echo '🔁 Pipeline execution completed.'
+            echo '🔁 Pipeline finished running.'
         }
     }
 }

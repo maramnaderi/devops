@@ -19,8 +19,8 @@ services:
     image: sonatype/nexus3
     container_name: nexus-server
     ports:
-      - "8083:8081"  # UI access: http://localhost:8083
-      - "5000:5000"  # Hosted Docker registry (make sure it's configured in Nexus UI)
+      - "8083:8081"  # Web UI
+      - "5000:5000"  
     volumes:
       - nexus-data:/nexus-data
     networks:

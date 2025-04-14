@@ -14,6 +14,18 @@ services:
     networks:
       - app-network
 
+  nexus:
+    image: sonatype/nexus3
+    container_name: nexus
+    ports:
+      - "8081:8081"
+      - "8083:8083"
+    volumes:
+      - nexus-data:/nexus-data
+    networks:
+      - app-network
+    restart: always
+
   spring_app:
     build:
       context: .
@@ -72,6 +84,7 @@ services:
 
 volumes:
   mysql_data:
+  nexus-data:
 
 networks:
   app-network:

@@ -138,18 +138,21 @@ pipeline {
             }
         }
 
-        stage('Déploiement avec Docker Compose') {
-            steps {
-                script {
-                    try {
-                        sh 'docker-compose up -d --build'
-                    } catch (Exception e) {
-                        echo "Erreur lors du déploiement Docker Compose : ${e}"
-                        error "Échec dans le déploiement avec Docker Compose"
-                    }
-                }
+stage('Déploiement avec Docker Compose') {
+    steps {
+        script {
+            try {
+                sh '''
+                    docker-compose pull
+                    docker-compose up -d
+                '''
+            } catch (Exception e) {
+                echo "Erreur lors du déploiement Docker Compose : ${e}"
+                error "Échec dans le déploiement avec Docker Compose"
             }
         }
+    }
+}
 
 
     }

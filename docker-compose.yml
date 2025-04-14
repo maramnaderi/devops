@@ -20,7 +20,7 @@ services:
     container_name: nexus-server
     ports:
       - "8083:8081"  # UI access: http://localhost:8083
-      - "8085:8085"  # Hosted Docker registry (make sure it's configured in Nexus UI)
+      - "5000:5000"  # Hosted Docker registry (make sure it's configured in Nexus UI)
     volumes:
       - nexus-data:/nexus-data
     networks:

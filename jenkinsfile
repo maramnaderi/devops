@@ -9,10 +9,10 @@ pipeline {
    environment {
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        registry = 'localhost:8085' // fixed from 192.168.33.10:8083
+        registry = '172.17.0.1:8085'
         registryCredentials = 'nexus'
         DOCKER_REPO = "${registry}/gestion-pist"
-                }
+    }
 
     stages {
         stage('Cloner le dépôt') {

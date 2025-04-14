@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CourseRestController.class)
-public class CourseControllerTest {
+ class CourseControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -29,7 +29,7 @@ public class CourseControllerTest {
     private ICourseServices courseServices;
 
     @Test
-    public void testAddCourse() throws Exception {
+     void testAddCourse() throws Exception {
         // Create test course
         Course course = new Course();
         course.setNumCourse(1L);
@@ -48,7 +48,7 @@ public class CourseControllerTest {
     }
 
     @Test
-    public void testGetAllCourses() throws Exception {
+     void testGetAllCourses() throws Exception {
         // Create test courses using setters
         Course course1 = new Course();
         course1.setNumCourse(1L);
@@ -76,7 +76,7 @@ public class CourseControllerTest {
                 .andExpect(status().isOk());
     }
     @Test
-    public void testUpdateCourse() throws Exception {
+     void testUpdateCourse() throws Exception {
         // Create test course
         Course course = new Course();
         course.setNumCourse(1L);
@@ -94,7 +94,7 @@ public class CourseControllerTest {
     }
 
     @Test
-    public void testGetCourseById() throws Exception {
+     void testGetCourseById() throws Exception {
         // Create test course
         Course course = new Course();
         course.setNumCourse(1L);

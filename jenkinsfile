@@ -52,26 +52,56 @@ pipeline {
             steps {
                 script {
                     def imageTag = "v1.${BUILD_NUMBER}"
-                    withEnv(["IMAGE_TAG=${imageTag}"]) {
-                        sh "docker-compose build spring-backend"
-                        sh "docker tag ${DOCKER_REPO}:latest ${DOCKER_REPO}:${imageTag}"
+                    def baseImage = "nihedxtn/gestion-pist"
+                    def fullImage = "${baseImage}:${imageTag}"
+
+                    // Build with Docker Compose (which creates :latest)
+                    sh 'docker-compose build spring-backend'
+
+                    // Debug output
+                    sh 'docker images'
+
+                    // Make sure latest exists before tagging
+                    def exists = sh(script: "docker images -q ${baseImage}:latest", returnStdout: true).trim()
+                    if (!exists) {
+                        error "❌ Image ${baseImage}:latest not found after build!"
                     }
+
+                    // Tag for version
+                    sh "docker tag ${baseImage}:latest ${fullImage}"
                 }
             }
         }
+
 
         stage('Push Docker Image') {
             steps {
                 script {
                     def imageTag = "v1.${BUILD_NUMBER}"
-                    withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
-                        sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u nihedxtn --password-stdin"
-                        sh "docker push ${DOCKER_REPO}:${imageTag}"
-                        sh "docker push ${DOCKER_REPO}:latest"
+                    def baseImage = "nihedxtn/gestion-pist"
+                    def fullImage = "${baseImage}:${imageTag}"
+
+            withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
+                sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u nihedxtn --password-stdin"
+
+                // Double check image exists before pushing
+                def exists = sh(script: "docker images -q ${fullImage}", returnStdout: true).trim()
+                if (!exists) {
+                    error "❌ Image ${fullImage} not found. Tag failed?"
+                }
+
+                sh "docker push ${fullImage}"
+                sh "docker push ${baseImage}:latest"
                     }
                 }
             }
         }
+
+        stage('Debug Images') {
+    steps {
+        sh 'docker images'
+    }
+}
 
         stage('SonarQube Analysis') {
             steps {

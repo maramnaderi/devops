@@ -127,7 +127,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh "docker push fadizaghdoud/gestion-station-ski:latest"
+                        sh "docker push haythem2000/gestion-station-ski:latest"
                         echo "✅ Image Docker poussée avec succès sur Docker Hub."
                     } catch (Exception e) {
                         echo "Erreur lors du push Docker : ${e}"

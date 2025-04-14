@@ -12,6 +12,7 @@ import java.util.List;
 @Tag(name = "\uD83D\uDCDA Course Management")
 @RestController
 @RequestMapping("/course")
+@RequiredArgsConstructor
 public class CourseRestController {
     
     private final ICourseServices courseServices;

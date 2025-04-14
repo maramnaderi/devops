@@ -1,5 +1,3 @@
-
-
 package tn.esprit.spring;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -7,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import tn.esprit.spring.entities.*;
 import tn.esprit.spring.repositories.*;
-import tn.esprit.spring.services.InstructorServicesImp;
+import tn.esprit.spring.services.InstructorServicesImpl;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -15,102 +13,88 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class InstructorServicesImpl {
+public class InstructorServicesImplTest {
 
     @InjectMocks
-    private InstructorServicesImp InstructorServices;
+    private InstructorServicesImpl instructorServices;
 
     @Mock
     private IInstructorRepository instructorRepository;
 
     @Mock
-    private ISubscriptionRepository subscriptionRepository;
-
-    @Mock
-    private IPisteRepository pisteRepository;
-
-    @Mock
     private ICourseRepository courseRepository;
-
-    @Mock
-    private IRegistrationRepository registrationRepository;
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
     }
 
-    // 1. Test addSkier()
+    // 1. Test addInstructorAndAssignToCourse()
     @Test
-    void testAddinstructorWithAnnualSubscription() {
-        Subscription sub = new Subscription();
-        sub.setStartDate(LocalDate.now());
-        sub.setTypeSub(TypeSubscription.ANNUAL);
+    void testAddInstructorAndAssignToCourse() {
+        // Création des objets Instructor et Course
+        Instructor instructor = new Instructor();
+        Course course = new Course();
+        course.setNumCourse(1L);
 
-        Skier skier = new Skier();
-        skier.setSubscription(sub);
+        // Comportement du mock
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+        when(instructorRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        when(skierRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        Instructor savedInstructor = instructorServices.addInstructorAndAssignToCourse(instructor, 1L);
 
-        Skier saved = skierServices.addSkier(skier);
-
-        assertNotNull(saved.getSubscription().getEndDate());
-        assertEquals(sub.getStartDate().plusYears(1), saved.getSubscription().getEndDate());
+        // Assertions pour vérifier que l'instructeur a bien été ajouté et assigné au cours
+        assertNotNull(savedInstructor);
+        assertTrue(savedInstructor.getCourses().contains(course));
     }
 
-    // 2. Test assignSkierToSubscription()
+    // 2. Test retrieveInstructor()
     @Test
-    void testAssignSkierToSubscription() {
-        Skier skier = new Skier();
-        skier.setNumSkier(1L);
+    void testRetrieveInstructor() {
+        Instructor instructor = new Instructor();
+        instructor.setNumInstructor(1L);
 
-        Subscription sub = new Subscription();
-        sub.setNumSub(2L);
+        when(instructorRepository.findById(1L)).thenReturn(Optional.of(instructor));
 
-        when(skierRepository.findById(1L)).thenReturn(Optional.of(skier));
-        when(subscriptionRepository.findById(2L)).thenReturn(Optional.of(sub));
-        when(skierRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        Instructor retrievedInstructor = instructorServices.retrieveInstructor(1L);
 
-        Skier updated = skierServices.assignSkierToSubscription(1L, 2L);
-
-        assertEquals(sub, updated.getSubscription());
+        assertNotNull(retrievedInstructor);
+        assertEquals(1L, retrievedInstructor.getNumInstructor());
     }
 
-    // 3. Test assignSkierToPiste()
+    // 3. Test updateInstructor()
     @Test
-    void testAssignSkierToPiste() {
-        Skier skier = new Skier();
-        skier.setNumSkier(1L);
-        skier.setPistes(new HashSet<>());
+    void testUpdateInstructor() {
+        Instructor instructor = new Instructor();
+        instructor.setNumInstructor(1L);
 
-        Piste piste = new Piste();
-        piste.setNumPiste(100L);
+        when(instructorRepository.save(any())).thenReturn(instructor);
 
-        when(skierRepository.findById(1L)).thenReturn(Optional.of(skier));
-        when(pisteRepository.findById(100L)).thenReturn(Optional.of(piste));
-        when(skierRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        Instructor updatedInstructor = instructorServices.updateInstructor(instructor);
 
-        Skier updated = skierServices.assignSkierToPiste(1L, 100L);
-
-        assertTrue(updated.getPistes().contains(piste));
+        assertNotNull(updatedInstructor);
+        assertEquals(1L, updatedInstructor.getNumInstructor());
     }
 
-    // 4. Test retrieveSkiersBySubscriptionType()
+    // 4. Test retrieveAllInstructors()
     @Test
-    void testRetrieveSkiersBySubscriptionType() {
-        List<Skier> expected = Arrays.asList(new Skier(), new Skier());
-        when(skierRepository.findBySubscription_TypeSub(TypeSubscription.MONTHLY)).thenReturn(expected);
+    void testRetrieveAllInstructors() {
+        List<Instructor> expectedInstructors = Arrays.asList(new Instructor(), new Instructor());
+        when(instructorRepository.findAll()).thenReturn(expectedInstructors);
 
-        List<Skier> result = skierServices.retrieveSkiersBySubscriptionType(TypeSubscription.MONTHLY);
+        List<Instructor> allInstructors = instructorServices.retrieveAllInstructors();
 
-        assertEquals(2, result.size());
+        assertEquals(2, allInstructors.size());
     }
 
-    // 5. Test removeSkier()
+    // 5. Test addInstructor()
     @Test
-    void testRemoveSkier() {
-        Long skierId = 5L;
-        skierServices.removeSkier(skierId);
-        verify(skierRepository, times(1)).deleteById(skierId);
+    void testAddInstructor() {
+        Instructor instructor = new Instructor();
+        when(instructorRepository.save(any())).thenReturn(instructor);
+
+        Instructor savedInstructor = instructorServices.addInstructor(instructor);
+
+        assertNotNull(savedInstructor);
     }
 }

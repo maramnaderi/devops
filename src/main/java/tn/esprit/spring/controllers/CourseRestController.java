@@ -2,6 +2,8 @@ package tn.esprit.spring.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus; // Ajoute cet import
+import org.springframework.http.ResponseEntity; // Ajoute cet import
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.spring.entities.Course;

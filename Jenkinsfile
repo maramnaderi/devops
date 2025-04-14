@@ -53,7 +53,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'mvn jacoco:report'
+                        sh 'mvn clean test jacoco:repor'
                     } catch (Exception e) {
                         echo "Erreur lors de la génération du rapport JaCoCo : ${e}"
                         error "Échec dans la génération du rapport JaCoCo"

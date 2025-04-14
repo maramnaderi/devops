@@ -1,0 +1,12 @@
+tn\esprit\spring\entities\Course.class
+tn\esprit\spring\entities\Piste.class
+tn\esprit\spring\entities\Skier.class
+tn\esprit\spring\services\ISkierServices.class
+tn\esprit\spring\entities\Subscription.class
+tn\esprit\spring\entities\Registration.class
+tn\esprit\spring\services\ICourseServices.class
+tn\esprit\spring\entities\TypeSubscription.class
+tn\esprit\spring\entities\Color.class
+tn\esprit\spring\entities\TypeCourse.class
+tn\esprit\spring\repositories\IPisteRepository.class
+tn\esprit\spring\entities\Support.class

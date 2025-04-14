@@ -11,9 +11,9 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./data/mysql:/var/lib/mysql  # Spécification d'un chemin local pour les données MySQL
+      - stationSki:/var/lib/mysql  # Utilisation du volume Docker
     networks:
-      - frontend_network  # Connexion au réseau défini
+      - frontend_network
 
   # Service backend Spring Boot
   app-ski:
@@ -33,7 +33,7 @@ services:
     stdin_open: true
     tty: true
     networks:
-      - frontend_network  # Connexion au réseau défini
+      - frontend_network
 
 # Volumes pour persistance des données MySQL
 volumes:
@@ -42,4 +42,4 @@ volumes:
 # Networks pour isoler les services
 networks:
   frontend_network:
-    driver: bridge  # Réseau pour permettre aux services de communiquer
+    driver: bridge

@@ -6,7 +6,15 @@ pipeline {
     }
 
     stages {
-
+    
+     stage('Setup') {
+            steps {
+                script {
+                    // Vérifie si le répertoire ./data/mysql existe
+                    sh 'mkdir -p ./data/mysql'
+                }
+            }
+        }
         stage('Récupération du code') {
             steps {
                 script {
@@ -21,6 +29,7 @@ pipeline {
                 }
             }
         }
+   
 
         stage('Compilation Maven') {
             steps {

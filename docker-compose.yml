@@ -18,7 +18,7 @@ services:
   # Service backend Spring Boot
   app-ski:
     build: .  # 👈 build local à partir du Dockerfile
-    image: haythemraggad/my-app:latest
+    image: haythemraggad/gestion-station-ski:latest
     restart: on-failure
     ports:
       - "8089:8089"

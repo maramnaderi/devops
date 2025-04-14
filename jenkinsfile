@@ -22,26 +22,9 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build & Test') {
             steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
-        stage('Unit Tests') {
-            steps {
-                sh 'mvn test -Dspring.profiles.active=test'
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
-                }
-            }
-        }
-
-        stage('Integration Tests') {
-            steps {
-                sh 'mvn verify -DskipUnitTests'
+                sh 'mvn verify jacoco:report -Dspring.profiles.active=test -T 1C'
             }
         }
 
@@ -124,21 +107,7 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'scanner'
-                    withSonarQubeEnv('scanner') {
-                        sh "${scannerHome}/bin/sonar-scanner " +
-                           "-Dsonar.projectKey=gestion-pist " +
-                           "-Dsonar.host.url=http://localhost:9000 " +
-                           "-Dsonar.sources=src " +
-                           "-Dsonar.java.binaries=target/classes"
-                    }
-                }
-            }
-        }
-    }
+        
 
     post {
         success {

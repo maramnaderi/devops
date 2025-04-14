@@ -46,33 +46,29 @@ pipeline {
                 sh 'mvn dependency:copy-dependencies -DoutputDirectory=target/lib'
             }
         }
-        stage('Building images') { 
-            steps{ 
-                script { 
-                    // Use the build number as part of the image tag
-                    def imageTag = "v1.${BUILD_NUMBER}"
-                    // Set environment variable for docker-compose
-                    withEnv(["IMAGE_TAG=${imageTag}"]) {
-                        sh 'docker-compose build'
-                    }
-                    // Tag and prepare for push
-                    sh "docker tag Nihed/gestion-pist:${imageTag} Nihed/gestion-pist:latest"
-                } 
-            } 
-        }
-        
-        stage('Push Docker Image') {
+        stage('Building images') {
             steps {
                 script {
                     def imageTag = "v1.${BUILD_NUMBER}"
-                    withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
-                        sh 'docker login -u Nihed -p ${DOCKER_HUB_PASSWORD}'
-                        sh "docker push Nihed/gestion-pist:${imageTag}"
-                        sh 'docker push Nihed/gestion-pist:latest'
+                    withEnv(["IMAGE_TAG=${imageTag}"]) {
+                        sh 'docker-compose build'
+                        // Optional: tag latest
+                        sh "docker tag nihed/gestion-pist:${imageTag} nihed/gestion-pist:latest"
                     }
                 }
             }
-        }
+
+            stage('Push Docker Image') {
+                steps {
+                    script {
+                        def imageTag = "v1.${BUILD_NUMBER}"
+                        withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_HUB_PASSWORD')]) {
+                            sh "echo ${DOCKER_HUB_PASSWORD} | docker login -u nihed --password-stdin"
+                            sh "docker push nihed/gestion-pist:${imageTag}"
+                            sh "docker push nihed/gestion-pist:latest"
+                        }
+                    }
+                }
 
         stage('SonarQube Analysis') {
             steps {

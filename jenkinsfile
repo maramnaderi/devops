@@ -60,8 +60,8 @@ pipeline {
                 }
 
                 // Tag the image correctly for Docker Hub
-                sh "docker tag nihed/gestion-pist:${imageTag} ${fullImage}"
-                sh "docker tag nihed/gestion-pist:${imageTag} ${latestImage}"
+                sh "docker tag nihedxtn/gestion-pist:${imageTag} ${fullImage}"
+                sh "docker tag nihedxtn/gestion-pist:${imageTag} ${latestImage}"
             }
         }
          }

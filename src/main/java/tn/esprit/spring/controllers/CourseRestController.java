@@ -2,8 +2,6 @@ package tn.esprit.spring.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus; // Ajoute cet import
-import org.springframework.http.ResponseEntity; // Ajoute cet import
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.spring.entities.Course;
@@ -16,32 +14,19 @@ import java.util.List;
 @RequestMapping("/course")
 @RequiredArgsConstructor
 public class CourseRestController {
-    
+
     private final ICourseServices courseServices;
 
- @Operation(description = "Add Course")
+    @Operation(description = "Add Course")
     @PostMapping("/add")
-    public ResponseEntity<Course> addCourse(@RequestBody Map<String, Object> courseRequest) {
-        // Récupérer les informations du POJO directement à partir du Map
-        String name = (String) courseRequest.get("name");
-        Integer level = (Integer) courseRequest.get("level");
-
-        // Créer l'entité Course à partir des informations récupérées
-        Course course = new Course();
-        course.setName(name);
-        course.setLevel(level);
-
-        // Appeler le service pour ajouter le cours
-        Course created = courseServices.addCourse(course);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public Course addCourse(@RequestBody Course course){
+        return  courseServices.addCourse(course);
     }
 
     @Operation(description = "Retrieve all Courses")
     @GetMapping("/all")
-    public ResponseEntity<List<Course>> getAllCourses() {
-     
-        List<Course> courses = courseServices.retrieveAllCourses();
-        return ResponseEntity.ok(courses);
+    public List<Course> getAllCourses(){
+        return courseServices.retrieveAllCourses();
     }
 
     @Operation(description = "Update Course ")

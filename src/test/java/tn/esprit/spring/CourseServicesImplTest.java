@@ -1,21 +1,19 @@
 package tn.esprit.spring;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+
 import tn.esprit.spring.entities.Course;
-import tn.esprit.spring.entities.TypeCourse;
 import tn.esprit.spring.repositories.ICourseRepository;
 import tn.esprit.spring.services.CourseServicesImpl;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-public class CourseServicesImplTest {
+class CourseServicesImplTest {
 
     @InjectMocks
     private CourseServicesImpl courseServices;
@@ -31,12 +29,10 @@ public class CourseServicesImplTest {
     @Test
     void testAddCourse() {
         Course course = new Course();
-        course.setPrice(50.0f);
-
+        course.setPrice(100.0f);
         when(courseRepository.save(course)).thenReturn(course);
-
-        Course saved = courseServices.addCourse(course);
-        assertEquals(50.0f, saved.getPrice());
+        Course result = courseServices.addCourse(course);
+        assertEquals(100.0f, result.getPrice());
     }
 
     @Test

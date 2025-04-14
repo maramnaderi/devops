@@ -54,28 +54,22 @@ pipeline {
             steps {
                 script {
                     def imageTag = "v1.${BUILD_NUMBER}"
-                    def fullImage = "${DOCKER_REPO}:${imageTag}"
-                    def latestImage = "${DOCKER_REPO}:latest"
+                    def nexusImage = "${DOCKER_REPO}:${imageTag}"
+                    def nexusLatest = "${DOCKER_REPO}:latest"
+                    def localImage = "localhost:8085/gestion-pist:latest"
 
-                    // Build using docker-compose
+                    // Build
                     sh 'docker-compose build spring-backend'
 
-                    // Ensure image was built correctly
-                    def exists = sh(script: "docker images -q ${DOCKER_REPO}:latest || true", returnStdout: true).trim()
+                    // Make sure the local image exists
+                    def exists = sh(script: "docker images -q ${localImage}", returnStdout: true).trim()
                     if (!exists) {
-                        // Check for localhost fallback if built as localhost
-                        exists = sh(script: "docker images -q localhost:8085/gestion-pist:latest || true", returnStdout: true).trim()
-                        if (exists) {
-                            echo "⚠️ Image was built as localhost:8085/gestion-pist instead. Retagging..."
-                            sh "docker tag localhost:8085/gestion-pist:latest ${DOCKER_REPO}:latest"
-                            sh "docker tag localhost:8085/gestion-pist:latest ${DOCKER_REPO}:${imageTag}"
-                        } else {
-                            error "❌ Docker image not found after build!"
-                        }
-                    } else {
-                        // Tag version
-                        sh "docker tag ${DOCKER_REPO}:latest ${fullImage}"
+                        error "❌ Image ${localImage} not found after build!"
                     }
+
+                    // Tag it properly for Nexus registry
+                    sh "docker tag ${localImage} ${nexusImage}"
+                    sh "docker tag ${localImage} ${nexusLatest}"
                 }
             }
         }
